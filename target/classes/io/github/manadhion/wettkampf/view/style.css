@@ -1,0 +1,16 @@
+
+/*oberstes Layout - VBox top*/
+.root-container {
+    -fx-background-color: #82ff8c;
+}
+
+/*Menüleiste ganz oben */
+.menu-bar {
+    -fx-background-color: #ffffff;
+}
+
+/* Hover/geöffnetes Menü */
+.menu-bar .menu:hover,
+.menu-bar .menu:showing {
+    -fx-background-color: #929292;
+}

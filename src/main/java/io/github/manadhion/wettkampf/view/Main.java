@@ -7,10 +7,14 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import io.github.manadhion.wettkampf.app.Controller;
 
 public class Main extends Application {
 
-    //Einstiegspunkt, erzeugt eine Insatnz und starte die Methode start aus der App-Klasse
+    //Controller-Objekt erzeugen
+    private Controller controller = new Controller(this);
+
+    //Einstiegspunkt, erzeugt eine Instanz und startet die Methode start aus der App-Klasse
     public static void main(String[] args) {
         launch(args);
     }
@@ -19,10 +23,13 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Blasrohr-Wettkampf-Manager");
+        
+        //Tabellen anlegen wenn sie noch nicht existieren
+        controller.createTableIfNotExists();
 
         //Oberstes Layout
 		VBox top = new VBox();
-		top.setStyle("-fx-background-color: #82ff8c;");
+		top.getStyleClass().add("root-container");
 		
 		//Menüleiste oben
 		MenuBar menuBar = new MenuBar();
@@ -34,7 +41,10 @@ public class Main extends Application {
 
         Scene scene = (new Scene(top, 1300, 900)); //Fenstereinstellungens-Parameter
 
-        primaryStage.setScene(scene);   //übernimmt die Fensterparameteer aus der Variable scene
+        //style.css in dieses Fenster/Szene einbinden
+        scene.getStylesheets().add(getClass().getResource("/io/github/manadhion/wettkampf/view/style.css").toExternalForm());
+
+        primaryStage.setScene(scene);   //übernimmt Szene scene als Argument
 		primaryStage.show();            //öffnet das Fenster
     }
 }
