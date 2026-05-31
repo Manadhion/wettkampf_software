@@ -11,17 +11,13 @@ public class Mannschaft {
     }
 
     private String name;
-    private int ergebnisHeute;
-    private int ergebnisGesamt;
     private int punkte;
     private int kaempfeBeendet;
     private String klasse;
 
     //Konstruktor für neue Mannschaft
-    public Mannschaft(String name, int ergebnisHeute, int ergebnisGesamt, int punkte, int kaempfeBeendet, String klasse) {
+    public Mannschaft(String name, int punkte, int kaempfeBeendet, String klasse) {
         this.name = name;
-        this.ergebnisHeute = ergebnisHeute;
-        this.ergebnisGesamt = ergebnisGesamt;
         this.punkte = punkte;
         this.kaempfeBeendet = kaempfeBeendet;
         this.klasse = klasse;
@@ -31,11 +27,9 @@ public class Mannschaft {
     }
 
     //Konstruktor zum laden von Mannschaften aus DB
-    public Mannschaft(String id, String name, int ergebnisHeute, int ergebnisGesamt, int punkte, int kaempfeBeendet, String klasse) {
+    public Mannschaft(String id, String name, int punkte, int kaempfeBeendet, String klasse) {
         this.id = id;
         this.name = name;
-        this.ergebnisHeute = ergebnisHeute;
-        this.ergebnisGesamt = ergebnisGesamt;
         this.punkte = punkte;
         this.kaempfeBeendet = kaempfeBeendet;
         this.klasse = klasse;
@@ -47,22 +41,6 @@ public class Mannschaft {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public int getErgebnisHeute() {
-        return ergebnisHeute;
-    }
-
-    public void setErgebnisHeute(int ergebnisHeute) {
-        this.ergebnisHeute = ergebnisHeute;
-    }
-
-    public int getErgebnisGesamt() {
-        return ergebnisGesamt;
-    }
-
-    public void setErgebnisGesamt(int ergebnisGesamt) {
-        this.ergebnisGesamt = ergebnisGesamt;
     }
 
     public int getPunkte() {

@@ -14,12 +14,10 @@ public class SchuetzeDAO {
     //neue Tabelle anlegen wenn sie noch nicht existiert
     public void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS schuetze ("
-                + "id TEXT,"
+                + "id TEXT PRIMARY KEY,"
                 + "vorname TEXT,"
                 + "nachname TEXT,"
-                + "mannschaft TEXT,"
-                + "ergebnisHeute INTEGER,"
-                + "ergebnisGesamt INTEGER,"
+                + "mannschaftid TEXT REFERENCES mannschaft(id),"
                 + "altersKlasse INTEGER"
                 + ")";
         
@@ -35,8 +33,8 @@ public class SchuetzeDAO {
     public void insert(Schuetze schuetze) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
-        String sql = "INSERT OR IGNORE INTO schuetze(id, vorname, nachname, mannschaft, ergebnisHeute, ergebnisGesamt, altersKlasse) "
-                + "VALUES(?,?,?,?,?,?,?)";
+        String sql = "INSERT OR IGNORE INTO schuetze(id, vorname, nachname, mannschaftid, altersKlasse) "
+                + "VALUES(?,?,?,?,?)";
 
         //Verbindung zu DB und arbeit ausführen
         try (Connection con = DBController.getConnection();
@@ -46,10 +44,8 @@ public class SchuetzeDAO {
 			ps.setString(1, schuetze.getId());
             ps.setString(2, schuetze.getVorname());
             ps.setString(3, schuetze.getNachname());
-            ps.setString(4, schuetze.getMannschaft());
-            ps.setInt(5, schuetze.getErgebnisHeute());
-            ps.setInt(6, schuetze.getErgebnisGesamt());
-            ps.setInt(7, schuetze.getAltersKlasse());
+            ps.setString(4, schuetze.getMannschaftid());
+            ps.setInt(5, schuetze.getAltersKlasse());
 			
 			ps.executeUpdate();
 

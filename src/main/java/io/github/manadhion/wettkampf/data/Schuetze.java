@@ -9,18 +9,14 @@ public class Schuetze {
     private String id;
     private String vorname;
     private String nachname;
-    private String mannschaft;
-    private int ergebnisHeute;
-    private int ergebnisGesamt;
+    private String mannschaftid;
     private int altersKlasse;
 
     //Konstruktor für neue Schützen
-    public Schuetze(String vorname, String nachname, String mannschaft, int ergebnisHeute, int ergebnisGesamt, int altersKlasse) {
+    public Schuetze(String vorname, String nachname, String mannschaftid, int altersKlasse) {
         this.vorname = vorname;
         this.nachname = nachname;
-        this.mannschaft = mannschaft;
-        this.ergebnisHeute = ergebnisHeute;
-        this.ergebnisGesamt = ergebnisGesamt;
+        this.mannschaftid = mannschaftid;
         this.altersKlasse = altersKlasse;
 
         //id erzeugen
@@ -28,13 +24,11 @@ public class Schuetze {
     }
 
         //Konstruktor um Schützen aus DB zu laden
-    public Schuetze(String id, String vorname, String nachname, String mannschaft, int ergebnisHeute, int ergebnisGesamt, int altersKlasse) {
+    public Schuetze(String id, String vorname, String nachname, String mannschaftid, int altersKlasse) {
         this.id = id;
         this.vorname = vorname;
         this.nachname = nachname;
-        this.mannschaft = mannschaft;
-        this.ergebnisHeute = ergebnisHeute;
-        this.ergebnisGesamt = ergebnisGesamt;
+        this.mannschaftid = mannschaftid;
         this.altersKlasse = altersKlasse;
     }
 
@@ -62,28 +56,12 @@ public class Schuetze {
         this.nachname = nachname;
     }
 
-    public String getMannschaft() {
-        return mannschaft;
+    public String getMannschaftid() {
+        return mannschaftid;
     }
 
-    public void setMannschaft(String mannschaft) {
-        this.mannschaft = mannschaft;
-    }
-
-    public int getErgebnisHeute() {
-        return ergebnisHeute;
-    }
-
-    public void setErgebnisHeute(int ergebnisHeute) {
-        this.ergebnisHeute = ergebnisHeute;
-    }
-
-    public int getErgebnisGesamt() {
-        return ergebnisGesamt;
-    }
-
-    public void setErgebnisGesamt(int ergebnisGesamt) {
-        this.ergebnisGesamt = ergebnisGesamt;
+    public void setMannschaftid(String mannschaft) {
+        this.mannschaftid = mannschaft;
     }
 
     public String getId() {

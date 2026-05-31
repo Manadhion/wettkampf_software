@@ -1,24 +1,21 @@
 package io.github.manadhion.wettkampf.dao;
 
-import io.github.manadhion.wettkampf.app.DBController;
-import io.github.manadhion.wettkampf.data.Mannschaft;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import io.github.manadhion.wettkampf.app.DBController;
+import io.github.manadhion.wettkampf.data.Wettkampftage;
 
 //Data Access-Objekt, koordiniert arbeiten zwischen DB-Tabelle und App
-public class MannschaftDAO {
+public class WettkampftageDAO {
     
     //neue Tabelle anlegen wenn sie noch nicht existiert
     public void createTableIfNotExists() {
-        String sql = "CREATE TABLE IF NOT EXISTS mannschaft ("
+        String sql = "CREATE TABLE IF NOT EXISTS wettkampftage ("
                 + "id TEXT PRIMARY KEY,"
-                + "name TEXT,"
-                + "punkte INTEGER,"
-                + "kaempfeBeendet INTEGER,"
-                + "klasse TEXT"
+                + "datum DATE,"
+                + "ausrichterverein TEXT"
                 + ")";
         
         try (Connection con = DBController.getConnection();
@@ -29,24 +26,21 @@ public class MannschaftDAO {
 	    }
     }
 
-
     //neue Entität einfügen
-    public void insert(Mannschaft mannschaft) {
+    public void insert(Wettkampftage wettkampftage) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
-        String sql = "INSERT OR IGNORE INTO mannschaft(id, name, punkte, kaempfeBeendet, klasse) "
-                + "VALUES(?,?,?,?,?)";
+        String sql = "INSERT OR IGNORE INTO wettkampftage(id, datum, ausrichterverein) "
+                + "VALUES(?,?,?)";
 
         //Verbindung zu DB und arbeit ausführen
         try (Connection con = DBController.getConnection();
 				PreparedStatement ps = con.prepareStatement(sql)){
 			
 			//set Values
-            ps.setString(1, mannschaft.getId());
-			ps.setString(2, mannschaft.getName());
-            ps.setInt(3, mannschaft.getPunkte());
-            ps.setInt(4, mannschaft.getKaempfeBeendet());
-            ps.setString(5, mannschaft.getKlasse());
+			ps.setString(1, wettkampftage.getId());
+            ps.setObject(2, wettkampftage.getDatum());
+            ps.setString(3, wettkampftage.getAusrichterVerein());
 			
 			ps.executeUpdate();
 
@@ -55,9 +49,4 @@ public class MannschaftDAO {
 		}
 
     }
-
-
-
-
-
 }
