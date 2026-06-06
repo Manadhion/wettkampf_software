@@ -6,24 +6,27 @@ import java.util.UUID;
 public class Wettkampftage {
 
     //Parameter
-    String id;
-    LocalDate datum;
-    String ausrichterVerein;
+    private String id;
+    private LocalDate datum;    //Datum an dem der Wettkampf stattfindet
+    private String ausrichterVerein;    //Der VErein bei dem der Wettkampf an diesem Tag stattfindet
+    private String saisonID; // Referenz auf die Saison
 
     //Konstruktor für neue Tage
-    public Wettkampftage(LocalDate datum, String ausrichterverein) {
+    public Wettkampftage(LocalDate datum, String ausrichterverein, String saisonID) {
         this.datum = datum;
         this.ausrichterVerein = ausrichterverein;
+        this.saisonID = saisonID;
 
         //id erzeugen
         id = UUID.randomUUID().toString();
     }
 
     //Konstruktor zum laden aus DB
-    public Wettkampftage(String id, LocalDate datum, String ausrichterverein) {
+    public Wettkampftage(String id, LocalDate datum, String ausrichterverein, String saisonID) {
         this.id = id;
         this.datum = datum;
         this.ausrichterVerein = ausrichterverein;
+        this.saisonID = saisonID;
     }
 
     public String getId() {
@@ -44,6 +47,14 @@ public class Wettkampftage {
 
     public void setAusrichterVerein(String ausrichterVerein) {
         this.ausrichterVerein = ausrichterVerein;
+    }
+
+    public String getSaisonID() {
+        return saisonID;
+    }
+
+    public void setSaisonID(String saisonID) {
+        this.saisonID = saisonID;
     }
     
     

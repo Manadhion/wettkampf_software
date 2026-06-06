@@ -5,10 +5,10 @@ import java.util.UUID;
 public class Ergebnisse {
 
     //Parameter
-    String id;
-    String schuetzeID;
-    String wettkampftagID;
-    int ergebnis;
+    private String id;
+    private String schuetzeID;      //Referenz zum Schützen
+    private String wettkampftagID;  //Referenz zum Wettkampftag
+    private int ergebnis;           //Ergebnis des Schützen an diesem Tag
 
     //Konstruktor für neues Ergebnis
     public Ergebnisse (String schuetzeID, String wettkampftagID, int ergebnis) {

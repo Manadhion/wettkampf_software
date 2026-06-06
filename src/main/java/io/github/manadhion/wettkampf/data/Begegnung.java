@@ -6,12 +6,12 @@ public class Begegnung {
 
     //Parameter
     private String id;
-    private String heim;
-    private String gegner;
-    private String wettkampftag;
+    private String heim;    //Heimmannschaft laut Saisonplanung
+    private String gegner;  //Auswärtsmannschaft laut Saisonplanung
+    private String wettkampftag;    //Referenz zum Wettkampftag
 
 
-    //Konstruktor zum alegen von neuen Begegnungen
+    //Konstruktor zum anlegen von neuen Begegnungen
     public Begegnung(String heim, String gegner, String wettkampftag) {
 
         this.heim = heim;

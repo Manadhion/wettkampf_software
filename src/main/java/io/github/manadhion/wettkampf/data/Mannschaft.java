@@ -6,20 +6,12 @@ public class Mannschaft {
 
     //Parameter
     private String id;
-    public String getId() {
-        return id;
-    }
-
-    private String name;
-    private int punkte;
-    private int kaempfeBeendet;
-    private String klasse;
+    private String name;    //Name der Mannschaft
+    private String klasse;  //Klasse in der sich die Mannschaft befindet, z.B. A-Klasse
 
     //Konstruktor für neue Mannschaft
-    public Mannschaft(String name, int punkte, int kaempfeBeendet, String klasse) {
+    public Mannschaft(String name, String klasse) {
         this.name = name;
-        this.punkte = punkte;
-        this.kaempfeBeendet = kaempfeBeendet;
         this.klasse = klasse;
 
         //id erzeugen
@@ -27,11 +19,9 @@ public class Mannschaft {
     }
 
     //Konstruktor zum laden von Mannschaften aus DB
-    public Mannschaft(String id, String name, int punkte, int kaempfeBeendet, String klasse) {
+    public Mannschaft(String id, String name, String klasse) {
         this.id = id;
         this.name = name;
-        this.punkte = punkte;
-        this.kaempfeBeendet = kaempfeBeendet;
         this.klasse = klasse;
     }
 
@@ -43,22 +33,6 @@ public class Mannschaft {
         this.name = name;
     }
 
-    public int getPunkte() {
-        return punkte;
-    }
-
-    public void setPunkte(int punkte) {
-        this.punkte = punkte;
-    }
-
-    public int getKaempfeBeendet() {
-        return kaempfeBeendet;
-    }
-
-    public void setKaempfeBeendet(int kaempfeBeendet) {
-        this.kaempfeBeendet = kaempfeBeendet;
-    }
-
     public String getKlasse() {
         return klasse;
     }
@@ -66,5 +40,15 @@ public class Mannschaft {
     public void setKlasse(String klasse) {
         this.klasse = klasse;
     }
-    
+
+    public String getId() {
+        return id;
+    }
+
+    //Anzeigetext für die ComboBox, sonst würde dort Mannschaft@123abc stehen
+    @Override
+    public String toString() {
+        return name;
+    }
+
 }

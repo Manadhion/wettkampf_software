@@ -9,8 +9,8 @@ public class Schuetze {
     private String id;
     private String vorname;
     private String nachname;
-    private String mannschaftid;
-    private int altersKlasse;
+    private String mannschaftid;    //Referenz zur Mannschaft
+    private int altersKlasse;       //Altersklasse z.B. Jugend, Herren usw.
 
     //Konstruktor für neue Schützen
     public Schuetze(String vorname, String nachname, String mannschaftid, int altersKlasse) {
@@ -67,5 +67,11 @@ public class Schuetze {
     public String getId() {
         return id;
     }
-    
+
+    //Anzeigetext für die ComboBox, sonst würde dort Schuetze@123abc stehen
+    @Override
+    public String toString() {
+        return vorname + " " + nachname;
+    }
+
 }

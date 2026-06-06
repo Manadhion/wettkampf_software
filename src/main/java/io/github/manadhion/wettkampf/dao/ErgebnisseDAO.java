@@ -2,6 +2,7 @@ package io.github.manadhion.wettkampf.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import io.github.manadhion.wettkampf.app.DBController;
@@ -14,16 +15,16 @@ public class ErgebnisseDAO {
     public void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS ergebnisse ("
                 + "id TEXT PRIMARY KEY,"
-                + "schuetzeID TEXT REFERENCES schuetze(id),"
-                + "wettkampftagID TEXT REFERENCES wettkampftage(id),"
-                + "ergebnis INTEGER"
+                + "schuetzeID TEXT REFERENCES schuetze(id) NOT NULL,"            //Referenz zur id des Schützen um dessen Ergebnis es geht
+                + "wettkampftagID TEXT REFERENCES wettkampftage(id) NOT NULL,"   //id zum Wettkampftag an dem das Ergebnis geschossen wurde
+                + "ergebnis INTEGER NOT NULL"
                 + ")";
         
         try (Connection con = DBController.getConnection();
             Statement stmt = con.createStatement()) {
                 stmt.execute(sql);
         } catch (SQLException e) {
-	        e.printStackTrace();
+	        throw new RuntimeException("Tabelle 'ergebnisse' konnte nicht angelegt werden", e);
 	    }
     }
 
@@ -51,5 +52,53 @@ public class ErgebnisseDAO {
 		}
 
     }
-    
+
+    //Ergebnis eines Schützen an einem bestimmten Wettkampftag holen, oder null wenn es noch keins gibt
+    public Ergebnisse ergebnisFuerSchuetzeUndTag(String schuetzeID, String wettkampftagID) {
+
+        Ergebnisse ergebnis = null;
+
+        String sql = "SELECT * FROM ergebnisse WHERE schuetzeID=? AND wettkampftagID=?";
+
+        //Abrufen der Werte
+        try (Connection con = DBController.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)){
+
+            //set Values
+            ps.setString(1, schuetzeID);
+            ps.setString(2, wettkampftagID);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                //gefundene Zeile in ein Objekt umwandeln
+                ergebnis = new Ergebnisse(rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return ergebnis;
+    }
+
+    //bestehendes Ergebnis ändern
+    public void update(Ergebnisse ergebnisse) {
+
+        String sql = "UPDATE ergebnisse SET ergebnis=? WHERE id=?";
+
+        //Verbindung zu DB und arbeit ausführen
+        try (Connection con = DBController.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)){
+
+            //set Values
+            ps.setInt(1, ergebnisse.getErgebnis());
+            ps.setString(2, ergebnisse.getId());
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

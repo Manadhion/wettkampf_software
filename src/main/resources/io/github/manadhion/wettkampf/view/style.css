@@ -2,6 +2,7 @@
 /*oberstes Layout - VBox top*/
 .root-container {
     -fx-background-color: #82ff8c;
+    -fx-alignment: top-center;   /* zentriert Elemente horizontal*/
 }
 
 /*Menüleiste ganz oben */
@@ -13,4 +14,56 @@
 .menu-bar .menu:hover,
 .menu-bar .menu:showing {
     -fx-background-color: #929292;
+}
+
+/*Formatierung für die Überschrift */
+.ueberschrift {
+    -fx-font-size: 28px;            /* Textgröße */
+    -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
+    -fx-fill: #220c9c;         /* Textfarbe */
+}
+
+/*Containerhälften - VBox links rechts*/
+.upper-container {
+    -fx-background-color: #82ff8c;
+    -fx-padding: 20;        /*Abstand nach aussen*/
+    -fx-spacing: 5;         /*Abstand der Elemente innerhalb */
+}
+
+/*Formatierung für Überschriften-Text auf der linken Fernsterseite */
+.ueberschriftLinks {
+    -fx-font-size: 16px;            /* Textgröße */
+    -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
+    -fx-fill: #220c9c;         /* Textfarbe */
+}
+
+/*Formatierung für Überschriften-Text auf der rechten Fernsterseite */
+.ueberschriftRechts {
+    -fx-font-size: 24px;            /* Textgröße */
+    -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
+    -fx-fill: #220c9c;         /* Textfarbe */
+}
+
+/* Formatierung für die Container der linken Seite */
+.containerLinks {
+    -fx-spacing: 10;               /*Abstand der Elemente innerhalb */
+}
+
+/* Formatierung für die Container der rechten Seite */
+.containerRechts {
+    -fx-spacing: 10;               /*Abstand der Elemente innerhalb */
+}
+
+/*Formatierung für die Tooltips */
+.tooltip {
+    -fx-font-size: 13px;
+    -fx-background-color: #220c9c;
+    -fx-text-fill: white;
+}
+
+/* Style für die ComboBoxen auf der linken Seite*/
+.comboL {
+    -fx-pref-width: 250px;   /* gewünschte Breite */
+    -fx-min-width: 250px;    /* nicht kleiner */
+    -fx-max-width: 250px;    /* nicht größer  */
 }
