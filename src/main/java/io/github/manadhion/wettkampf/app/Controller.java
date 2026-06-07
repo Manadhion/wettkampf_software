@@ -7,13 +7,13 @@ import io.github.manadhion.wettkampf.dao.SaisonDAO;
 import io.github.manadhion.wettkampf.dao.SchuetzeDAO;
 import io.github.manadhion.wettkampf.dao.WettkampftageDAO;
 import io.github.manadhion.wettkampf.view.Main;
+import io.github.manadhion.wettkampf.view.SaisonView;
 import io.github.manadhion.wettkampf.data.Begegnung;
 import io.github.manadhion.wettkampf.data.Ergebnisse;
 import io.github.manadhion.wettkampf.data.Mannschaft;
 import io.github.manadhion.wettkampf.data.Saison;
 import io.github.manadhion.wettkampf.data.Schuetze;
 import io.github.manadhion.wettkampf.data.Wettkampftage;
-import java.util.ArrayList;
 import java.util.List;
 
 //Controller um Datenstrom gezielt zu lenken
@@ -21,10 +21,16 @@ public class Controller {
     
     //Instanzen der App-Fenster
     private Main viewMain;
+    private SaisonView saisonView;
 
     //Constructor mit Main-Objekt
     public Controller(Main viewMain) {
         this.viewMain = viewMain;
+    }
+
+    //Konstruktor mit SaisonView-Objekt
+    public Controller(SaisonView saisonView) {
+        this.saisonView = saisonView;
     }
 
 
@@ -35,12 +41,14 @@ public class Controller {
         ErgebnisseDAO eDAO = new ErgebnisseDAO();
         SchuetzeDAO sDAO = new SchuetzeDAO();
         WettkampftageDAO wDAO = new WettkampftageDAO();
+        SaisonDAO saDAO = new SaisonDAO();
         
         maDAO.createTableIfNotExists();
         bDAO.createTableIfNotExists();
         eDAO.createTableIfNotExists();
         sDAO.createTableIfNotExists();
         wDAO.createTableIfNotExists();
+        saDAO.createTableIfNotExists();
     }
 
     //alle Wettkampftage abrufen
@@ -141,5 +149,22 @@ public class Controller {
         MannschaftDAO mDAO = new MannschaftDAO();
         Mannschaft m = mDAO.mannschaftMitID(mID);
         return m;
+    }
+
+    //Fenster zur eingabe einer neuen Saison öffnen
+    public void neueSaisonFenster() {
+        SaisonView sView = new SaisonView();
+        sView.setController(this); //bestehenden Controller reinreichen
+        this.saisonView = sView;   //Controller merkt sich die View
+        sView.newSaison();         //Szene aufbauen
+        sView.show();
+    }
+
+    //neue Saison speichern
+    public void neueSaisonAnlegen (Saison saison) {
+        SaisonDAO sDAO = new SaisonDAO();
+        sDAO.insert(saison);
+        saisonView.close();
+        viewMain.saisonComboAktualisieren();
     }
 }

@@ -67,3 +67,31 @@
     -fx-min-width: 250px;    /* nicht kleiner */
     -fx-max-width: 250px;    /* nicht größer  */
 }
+
+/*oberstes Layout - newSaison - Fenster*/
+.newSaison-container {
+    -fx-background-color: #82ff8c;
+    -fx-alignment: top-center;   /* zentriert Elemente horizontal*/
+    -fx-spacing: 10;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 10;        /*Abstand nach aussen*/
+}
+
+/* Style für die Boxen in SeasionView */
+.Box-newSaison {
+    -fx-spacing: 4;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 4;        /*Abstand nach aussen*/
+}
+
+/*Formatierung für Text in SaisonView */
+.Text-newSaison {
+    -fx-font-size: 16px;            /* Textgröße */
+    -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
+    -fx-fill: #220c9c;         /* Textfarbe */
+}
+
+/*TextField in SaisonView */
+.TextField-newSaison {
+    -fx-pref-width: 30px;   /* gewünschte Breite */
+    -fx-min-width: 30px;    /* nicht kleiner */
+    -fx-max-width: 30px;    /* nicht größer  */
+}

@@ -56,7 +56,7 @@ public class SaisonDAO {
     public List<Saison> alleSaisons() {
         List<Saison> saison = new ArrayList<>();
 
-        String sql = "Select * FROM saison";
+        String sql = "Select * FROM saison ORDER BY name DESC";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();

@@ -5,13 +5,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import io.github.manadhion.wettkampf.app.DBController;
 import io.github.manadhion.wettkampf.data.Begegnung;
-import io.github.manadhion.wettkampf.data.Wettkampftage;
 
 //Data Access-Objekt, koordiniert arbeiten zwischen DB-Tabelle und App
 public class BegegnungDAO {

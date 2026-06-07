@@ -130,6 +130,9 @@ public class Main extends Application {
         Tooltip tipsaPlus = new Tooltip("Neue Saison anlegen");
         tipsaPlus.setShowDelay(Duration.millis(300));
         saPlusButton.setTooltip(tipsaPlus);
+        saPlusButton.setOnAction(event -> {
+			controller.neueSaisonFenster();
+		});
 
         //Textfeld für die Auswahl des Wettkamptages
         Text wTagText = new Text("Wettkampftag: ");
@@ -491,5 +494,10 @@ public class Main extends Application {
 
         }
 
+    }
+
+    //ComboBox für Saison neu aus der DB laden
+    public void saisonComboAktualisieren() {
+        saisonCombo.setItems(FXCollections.observableArrayList(controller.alleSaisons()));
     }
 }
