@@ -1,7 +1,7 @@
 
 /*oberstes Layout - VBox top*/
 .root-container {
-    -fx-background-color: #82ff8c;
+    -fx-background-color: #f4f6f8;
     -fx-alignment: top-center;   /* zentriert Elemente horizontal*/
 }
 
@@ -18,30 +18,35 @@
 
 /*Formatierung für die Überschrift */
 .ueberschrift {
-    -fx-font-size: 28px;            /* Textgröße */
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 26px;            /* Textgröße */
     -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
-    -fx-fill: #220c9c;         /* Textfarbe */
+    -fx-fill: #1f2937;         /* Textfarbe */
 }
 
 /*Containerhälften - VBox links rechts*/
 .upper-container {
-    -fx-background-color: #82ff8c;
-    -fx-padding: 20;        /*Abstand nach aussen*/
-    -fx-spacing: 5;         /*Abstand der Elemente innerhalb */
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 24;        /*Abstand nach aussen*/
+    -fx-spacing: 14;         /*Abstand der Elemente innerhalb */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 12, 0, 0, 2);
 }
 
 /*Formatierung für Überschriften-Text auf der linken Fernsterseite */
 .ueberschriftLinks {
-    -fx-font-size: 16px;            /* Textgröße */
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;            /* Textgröße */
     -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
-    -fx-fill: #220c9c;         /* Textfarbe */
+    -fx-fill: #6b7280;         /* Textfarbe */
 }
 
 /*Formatierung für Überschriften-Text auf der rechten Fernsterseite */
 .ueberschriftRechts {
-    -fx-font-size: 24px;            /* Textgröße */
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 18px;            /* Textgröße */
     -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
-    -fx-fill: #220c9c;         /* Textfarbe */
+    -fx-fill: #6b7280;         /* Textfarbe */
 }
 
 /* Formatierung für die Container der linken Seite */
@@ -68,9 +73,37 @@
     -fx-max-width: 250px;    /* nicht größer  */
 }
 
+/* flache ComboBox */
+.combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #d1d5db;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+.combo-box:focused {
+    -fx-border-color: #2563eb;    
+}
+
+/* primärer Button */
+.button {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+.button:hover { -fx-background-color: #1d4ed8; }
+
+/* nur für Buttons mit der Klasse danger */
+.button.danger {
+    -fx-background-color: #dc2626;
+}
+.button.danger:hover { -fx-background-color: #dd5a5a; }
+
+
 /*oberstes Layout - newSaison - Fenster*/
 .newSaison-container {
-    -fx-background-color: #82ff8c;
+    -fx-background-color: white;
     -fx-alignment: top-center;   /* zentriert Elemente horizontal*/
     -fx-spacing: 10;            /*Abstand der Elemente innerhalb */
     -fx-padding: 10;        /*Abstand nach aussen*/
@@ -94,4 +127,39 @@
     -fx-pref-width: 30px;   /* gewünschte Breite */
     -fx-min-width: 30px;    /* nicht kleiner */
     -fx-max-width: 30px;    /* nicht größer  */
+}
+
+/*oberstes Layout - newWettkampftag - Fenster*/
+.newWettkampftag-container {
+    -fx-background-color: white;
+    /*-fx-alignment: top-center;    zentriert Elemente horizontal*/
+    -fx-spacing: 10;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 10;        /*Abstand nach aussen*/
+}
+
+/* Style für die Boxen in WTagView */
+.Box-newWettkampftag {
+    -fx-spacing: 4;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 4;        /*Abstand nach aussen*/
+}
+
+/*Formatierung für Text in wTagView */
+.Text-newWettkampftag {
+    -fx-font-size: 16px;            /* Textgröße */
+    -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
+    -fx-fill: #220c9c;         /* Textfarbe */
+}
+
+/*TextField in WTagView */
+.TextField-newWettkampdtag {
+    -fx-pref-width: 30px;   /* gewünschte Breite */
+    -fx-min-width: 30px;    /* nicht kleiner */
+    -fx-max-width: 30px;    /* nicht größer  */
+}
+
+/* Style für die ComboBox in newWettkampftag*/
+.combo-newWettkampftag {
+    -fx-pref-width: 80px;   /* gewünschte Breite */
+    -fx-min-width: 80px;    /* nicht kleiner */
+    -fx-max-width: 80px;    /* nicht größer  */
 }

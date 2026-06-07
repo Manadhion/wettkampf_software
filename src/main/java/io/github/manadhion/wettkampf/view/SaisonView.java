@@ -27,8 +27,7 @@ public class SaisonView extends Stage {
 	public void intAlert () {
 		Alert intAlert = new Alert(AlertType.ERROR);
 		intAlert.setTitle("Fehler!");
-		intAlert.setHeaderText("Formatfehler");
-		intAlert.setContentText("Bitte nur ganze Zahlen eingeben!");
+		intAlert.setHeaderText("Bitte nur ganze Zahlen eingeben!");
 		intAlert.showAndWait();
 	}
 
@@ -36,8 +35,7 @@ public class SaisonView extends Stage {
 	public void valueAlert(String text) {
 		Alert eqAlert = new Alert(AlertType.ERROR);
 		eqAlert.setTitle("Fehler!");
-		eqAlert.setHeaderText("Eingabefehler");
-		eqAlert.setContentText(text);
+		eqAlert.setHeaderText(text);
 		eqAlert.showAndWait();
 	}
 
@@ -98,6 +96,12 @@ public class SaisonView extends Stage {
 				this.valueAlert("Bitte zweistellige Jahreszahl in jedes Feld eingeben eingeben! (Beispiel: 25 / 26)");
 				return;
 			}
+
+            //prüfen ob die Saison bereits existiert
+            if (controller.saisonExistiert(saisonName)) {
+                this.valueAlert("Diese Saison gibt es bereits!");
+                return;
+            }
 
             //neue Saison speichern
             Saison s = new Saison(saisonName);

@@ -6,9 +6,8 @@ io\github\manadhion\wettkampf\dao\ErgebnisseDAO.class
 io\github\manadhion\wettkampf\data\Schuetze.class
 io\github\manadhion\wettkampf\dao\WettkampftageDAO.class
 module-info.class
-io\github\manadhion\wettkampf\app\Controller.class
+io\github\manadhion\wettkampf\view\Main$1.class
 io\github\manadhion\wettkampf\data\Wettkampftage.class
 io\github\manadhion\wettkampf\dao\BegegnungDAO.class
 io\github\manadhion\wettkampf\dao\MannschaftDAO.class
 io\github\manadhion\wettkampf\data\Begegnung.class
-io\github\manadhion\wettkampf\view\Main.class

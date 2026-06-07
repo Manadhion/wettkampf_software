@@ -76,5 +76,38 @@ public class SaisonDAO {
 
         return saison;
     }
+
+    //Saison löschen, falls falsch eingetragen oder ausgefallen
+    public int delete(String id) {
+        String sql = "DELETE FROM saison WHERE id=?;";
+
+        //return Statement
+        int erg = 0;
+
+        //Löschvorgang
+        try(Connection con = DBController.getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)){
+			ps.setString(1, id);;
+			erg = ps.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		//wenn erg >0 ist war das Löschen erfolgreich
+		return erg;
+    }
+
+    //prüfen ob es eine Saison mit diesem Namen schon gibt
+    public boolean existiert(int name) {
+        String sql = "SELECT 1 FROM saison WHERE name = ?";
+        try (Connection con = DBController.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, name);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();   // true, wenn eine Zeile gefunden wurde
+        } catch (SQLException e) {
+            throw new RuntimeException("Prüfung auf vorhandene Saison fehlgeschlagen", e);
+        }
+    }
     
 }

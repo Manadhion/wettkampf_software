@@ -12,8 +12,6 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -49,7 +47,6 @@ public class Main extends Application {
     private TextField ergebnisFeld;
     private Text aktTagText;
     private VBox tagAnzeige = new VBox();
-    private boolean begegnungAngezeigt = true; //ist der ToogleButton gerade auf Begegnung anzeigen?
     private Button ergebnisButton = new Button("Speichern");
 
     //Einstiegspunkt, erzeugt eine Instanz und startet die Methode start aus der App-Klasse
@@ -134,6 +131,19 @@ public class Main extends Application {
 			controller.neueSaisonFenster();
 		});
 
+        //Buton um Saison zu löschen
+        Button saMinusButton = new Button("-");
+        saMinusButton.setDisable(true);
+        saMinusButton.getStyleClass().add("danger"); //Aufrufname für die .css Datei
+        saisonContainer.getChildren().add(saMinusButton);
+        Tooltip tipsaMinus = new Tooltip("Saison löschen");
+        tipsaMinus.setShowDelay(Duration.millis(300));
+        saMinusButton.setTooltip(tipsaMinus);
+        saMinusButton.setOnAction(event -> {
+            String id = saisonCombo.getSelectionModel().getSelectedItem().getId();
+            controller.saisonLöschenWarnen(id);
+		});
+
         //Textfeld für die Auswahl des Wettkamptages
         Text wTagText = new Text("Wettkampftag: ");
         wTagText.getStyleClass().add("ueberschriftLinks"); //Aufrufname für die .css Datei
@@ -175,22 +185,39 @@ public class Main extends Application {
         Tooltip tipWTagePlus = new Tooltip("Neuen Wettkampftag anlegen");
         tipWTagePlus.setShowDelay(Duration.millis(300));
         wTagPlusButton.setTooltip(tipWTagePlus);
+        wTagPlusButton.setOnAction(event -> {
+            controller.neuerWettkampftagFenster(saisonCombo.getSelectionModel().getSelectedItem());
+        });
+
+        //Buton um Wettkampftag zu löschen
+        Button wtMinusButton = new Button("-");
+        wtMinusButton.setDisable(true);
+        wtMinusButton.getStyleClass().add("danger"); //Aufrufname für die .css Datei
+        wTagContainer.getChildren().add(wtMinusButton);
+        Tooltip tipwtMinus = new Tooltip("Wettkampftag löschen");
+        tipwtMinus.setShowDelay(Duration.millis(300));
+        wtMinusButton.setTooltip(tipwtMinus);
+        wtMinusButton.setOnAction(event -> {
+            
+		});
 
         //Combobox für Wettkampftage soll reagieren, wenn eine Saison ausgewählt wird
         saisonCombo.getSelectionModel().selectedItemProperty().addListener(
             (obs, alteSaison, neueSaison) -> {
 
                 if (neueSaison == null) {
-                    //keine Saison gewählt, Wettkampftage-Box leeren und sperren
+                    //keine Saison gewählt, Wettkampftage-Box leeren und sperren, sowie Saisonlöschen-Button deaktivieren
                     wTageBox.getItems().clear();
                     wTageBox.setDisable(true);
                     wTagPlusButton.setDisable(true);
+                    saMinusButton.setDisable(true);
                 } else {
-                    //Wettkampftage dieser Saison laden und Box aktivieren
+                    //Wettkampftage dieser Saison laden und Box aktivieren, sowie Saisonlöschen-Button aktivieren
                     wTageBox.setItems(FXCollections.observableArrayList(
                         controller.wettkampftageVonSaison(neueSaison.getId())));
                     wTageBox.setDisable(false);
                     wTagPlusButton.setDisable(false);
+                    saMinusButton.setDisable(false);
                 }
             });
 
@@ -301,9 +328,7 @@ public class Main extends Application {
         ergebnisButton.setTooltip(tipErgebnis);
         ergebnisButton.setOnAction(e -> {
             ergebnisSpeichern(); //speichert das Ergebnis in die DB
-            if (begegnungAngezeigt == true) {   //wenn Begegnungen gerade angezeigt werden, diese Aktuallisieren
-                begegnungenAnzeigen();
-            }
+            begegnungenAnzeigen();
         });
 
         //Ergebnisfeld soll reagieren, wenn sich der Schütze ändert
@@ -325,36 +350,7 @@ public class Main extends Application {
         aktTagText.getStyleClass().add("ueberschriftRechts"); //Aufrufname für die .css Datei
         rechts.getChildren().add(aktTagText);
 
-        //HBox um zwischen Begegnungen und aktuelle Tabelle zu springen
-        HBox steuerButton = new HBox();
-        steuerButton.getStyleClass().add("containerRechts"); //Aufrufname für die .css Datei
-        VBox.setMargin(steuerButton, new Insets(20, 0, 0, 0)); //Abstand über der ComboBox zum nächsten Element
-        rechts.getChildren().add(steuerButton);
-
-        //Umschalter zwischen Begegnungen und Tabelle, es kann immer nur einer aktiv sein
-        ToggleGroup ansichtGruppe = new ToggleGroup();
-        ToggleButton begegnungenButton = new ToggleButton("Begegnungen");
-        ToggleButton tabelleButton = new ToggleButton("Tabelle");
-        begegnungenButton.setToggleGroup(ansichtGruppe);
-        tabelleButton.setToggleGroup(ansichtGruppe);
-        begegnungenButton.setSelected(true);  //Begegnungen als Standardauswahl beim Start
-        steuerButton.getChildren().addAll(begegnungenButton, tabelleButton);
-        //verhindern, dass durch erneutes Klicken gar nichts mehr ausgewählt ist
-        ansichtGruppe.selectedToggleProperty().addListener((obs, alt, neu) -> {
-            if (neu == null) {
-                ansichtGruppe.selectToggle(alt);   //den vorherigen wieder aktivieren
-            }
-            if (neu == begegnungenButton) {
-                begegnungenAnzeigen();
-                begegnungAngezeigt = true;
-
-            } else if (neu == tabelleButton) {
-                begegnungAngezeigt = false;
-                return;
-            }
-        });
-
-        //Platzhalter-Box für Begegnungen oder Tabelle einfügen
+        //Platzhalter-Box für Begegnungen einfügen
         rechts.getChildren().add(tagAnzeige);
 
 

@@ -7,7 +7,9 @@ import io.github.manadhion.wettkampf.dao.SaisonDAO;
 import io.github.manadhion.wettkampf.dao.SchuetzeDAO;
 import io.github.manadhion.wettkampf.dao.WettkampftageDAO;
 import io.github.manadhion.wettkampf.view.Main;
+import io.github.manadhion.wettkampf.view.OwnAlert;
 import io.github.manadhion.wettkampf.view.SaisonView;
+import io.github.manadhion.wettkampf.view.WTagView;
 import io.github.manadhion.wettkampf.data.Begegnung;
 import io.github.manadhion.wettkampf.data.Ergebnisse;
 import io.github.manadhion.wettkampf.data.Mannschaft;
@@ -22,8 +24,17 @@ public class Controller {
     //Instanzen der App-Fenster
     private Main viewMain;
     private SaisonView saisonView;
+    private WTagView wTageView;
 
-    //Constructor mit Main-Objekt
+    //Objekt OwnAlert anlegen
+    OwnAlert alert = new OwnAlert();
+
+    //Konstruktor ohne Objekt
+    public Controller() {
+		super();
+	}
+
+    //Konstruktor mit Main-Objekt
     public Controller(Main viewMain) {
         this.viewMain = viewMain;
     }
@@ -31,6 +42,11 @@ public class Controller {
     //Konstruktor mit SaisonView-Objekt
     public Controller(SaisonView saisonView) {
         this.saisonView = saisonView;
+    }
+
+    //Konstruktor mit WTagView-Objekt
+    public Controller(WTagView wTageView) {
+        this.wTageView = wTageView;
     }
 
 
@@ -123,10 +139,12 @@ public class Controller {
         if (vorhanden == null) {
             //noch keins, neues Ergebnis anlegen
             eDAO.insert(new Ergebnisse(schuetzeID, wettkampftagID, wert));
+            alert.savedAlert("Ergebnis gespeichert");
         } else {
             //schon vorhanden, Wert ändern und updaten
             vorhanden.setErgebnis(wert);
             eDAO.update(vorhanden);
+            alert.savedAlert("Ergebnis geändert");
         }
     }
 
@@ -160,11 +178,47 @@ public class Controller {
         sView.show();
     }
 
+    //Prüfen ob es die Saison schon gibt
+    public boolean saisonExistiert(int name) {
+        SaisonDAO sDAO = new SaisonDAO();
+        return sDAO.existiert(name);
+    }
+
     //neue Saison speichern
     public void neueSaisonAnlegen (Saison saison) {
         SaisonDAO sDAO = new SaisonDAO();
         sDAO.insert(saison);
         saisonView.close();
         viewMain.saisonComboAktualisieren();
+    }
+
+    //Saison löschen-Warnung
+    public void saisonLöschenWarnen(String id) {
+        if (alert.saisonLoeschenBestaetigen()) { //Wenn mit ok bestätigt wurde
+            saisonLöschen(id);
+        }
+    }
+
+    //Saison aus DB löschen
+    public void saisonLöschen(String id) {
+        SaisonDAO sDAO = new SaisonDAO();
+        int geloescht = sDAO.delete(id); //Zum testen ob tatsächlich etwas gelöscht wurde
+
+        if (geloescht > 0) { //Wenn tatsächlich etwas gelöscht wurde
+            alert.infoAlert("Saison wurde gelöscht");
+            viewMain.saisonComboAktualisieren(); //Saison ComboBox aktuallisieren
+        }
+        else {
+            alert.errorAlert("Saison konnte nicht gelöscht werden!");
+        }
+    }
+
+    //Fenster zur eingabe eines neuen Wettkampftages öffnen
+    public void neuerWettkampftagFenster(Saison saison) {
+        WTagView wView = new WTagView();
+        wView.setController(this); //bestehenden Controller reinreichen
+        this.wTageView = wView;   //Controller merkt sich die View
+        wView.newWettkampftag(saison);         //Szene aufbauen
+        wView.show();
     }
 }
