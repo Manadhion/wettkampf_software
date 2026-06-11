@@ -81,6 +81,39 @@ public class ErgebnisseDAO {
         return ergebnis;
     }
 
+    //Gesamtergebnis einer Mannschaft an einem Tag = Summe der besten 3 Schützen-Ergebnisse
+    public int gesamtErgebnisBeste3(String mannschaftID, String wettkampftagID) {
+
+        int gesamt = 0;
+
+        //die besten 3 Ergebnisse direkt von der DB sortiert und begrenzt holen und aufsummieren
+        String sql = "SELECT COALESCE(SUM(ergebnis), 0) FROM ("
+                + "SELECT e.ergebnis FROM ergebnisse e "
+                + "JOIN schuetze s ON e.schuetzeID = s.id "
+                + "WHERE s.mannschaftid = ? AND e.wettkampftagID = ? "
+                + "ORDER BY e.ergebnis DESC LIMIT 3"
+                + ")";
+
+        //Abrufen der Werte
+        try (Connection con = DBController.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)){
+
+            //set Values
+            ps.setString(1, mannschaftID);
+            ps.setString(2, wettkampftagID);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                gesamt = rs.getInt(1);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return gesamt;
+    }
+
     //bestehendes Ergebnis ändern
     public void update(Ergebnisse ergebnisse) {
 

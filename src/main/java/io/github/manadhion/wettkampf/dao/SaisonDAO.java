@@ -97,6 +97,29 @@ public class SaisonDAO {
         return saison;
     }
 
+    //Saison mit einer bestimmten ID finden, oder null wenn es keine gibt
+    public Saison saisonMitId(String id) {
+        Saison saison = null;
+
+        String sql = "SELECT * FROM saison WHERE id=?";
+
+        try (Connection con = DBController.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)){
+
+            ps.setString(1, id);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                saison = new Saison(rs.getString(1), rs.getInt(2));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return saison;
+    }
+
     //Saison löschen, falls falsch eingetragen oder ausgefallen
     public int delete(String id) {
         String sql = "DELETE FROM saison WHERE id=?;";

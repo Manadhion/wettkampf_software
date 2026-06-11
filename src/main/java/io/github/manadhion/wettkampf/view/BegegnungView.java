@@ -2,9 +2,7 @@ package io.github.manadhion.wettkampf.view;
 
 import io.github.manadhion.wettkampf.app.Controller;
 import io.github.manadhion.wettkampf.data.Begegnung;
-import io.github.manadhion.wettkampf.data.Liga;
 import io.github.manadhion.wettkampf.data.Mannschaft;
-import io.github.manadhion.wettkampf.data.Schuetze;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;

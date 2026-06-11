@@ -82,16 +82,18 @@ public class MannschaftDAO {
 
         List<Mannschaft> mannschaften = new ArrayList<>();
 
-        String sql = "Select * FROM mannschaft";
+        //Liganame gleich per JOIN mitladen, damit die Anzeige keine eigene DB-Abfrage braucht
+        String sql = "SELECT m.id, m.name, m.klasse, l.name "
+                + "FROM mannschaft m LEFT JOIN liga l ON m.klasse = l.id";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();
 				PreparedStatement ps = con.prepareStatement(sql)){
-			
+
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
-                //für jede Zeile ein neues Objekt von Wettkampftage erzeugen und der Liste hinzufügen
-				Mannschaft m = new Mannschaft(rs.getString(1), rs.getString(2), rs.getString(3));
+                //für jede Zeile ein neues Objekt von Mannschaft erzeugen und der Liste hinzufügen
+				Mannschaft m = new Mannschaft(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4));
 
                 mannschaften.add(m);
 			}
@@ -104,22 +106,27 @@ public class MannschaftDAO {
 
     }
 
-    //MAnnschaft durch ID finden
+    //Mannschaft durch ID finden, oder null wenn es keine gibt
     public Mannschaft mannschaftMitID(String mID) {
 
-        Mannschaft m;
+        Mannschaft m = null;
 
-        String sql = "Select * FROM mannschaft WHERE id=?";
+        //Liganame gleich per JOIN mitladen, damit die Anzeige keine eigene DB-Abfrage braucht
+        String sql = "SELECT m.id, m.name, m.klasse, l.name "
+                + "FROM mannschaft m LEFT JOIN liga l ON m.klasse = l.id WHERE m.id=?";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();
 				PreparedStatement ps = con.prepareStatement(sql)){
-			
+
             ps.setString(1, mID);
 
 			ResultSet rs = ps.executeQuery();
 
-            m = new Mannschaft(rs.getString(1), rs.getString(2), rs.getString(3));
+            if (rs.next()) {
+                //gefundene Zeile in ein Objekt umwandeln
+                m = new Mannschaft(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4));
+            }
         
 			return m;
 			

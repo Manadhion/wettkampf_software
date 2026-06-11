@@ -1,0 +1,102 @@
+/* Beamer-Anzeige: dunkler Hintergrund, große Schrift, aus der Ferne lesbar */
+
+.beamer-root {
+    -fx-background-color: #0d1b2a;
+}
+
+/* Kopfzeile */
+.beamer-kopf {
+    -fx-padding: 20 40 10 40;
+    -fx-spacing: 10;
+    -fx-background-color: #1b263b;
+}
+
+.beamer-saison {
+    -fx-fill: #e0e1dd;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+}
+
+.beamer-uhr {
+    -fx-fill: #e0e1dd;
+    -fx-font-size: 32px;
+}
+
+.beamer-pause {
+    -fx-fill: #ffd60a;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+}
+
+.beamer-liga {
+    -fx-fill: #ffd60a;
+    -fx-font-size: 48px;
+    -fx-font-weight: bold;
+}
+
+/* Inhaltsbereich */
+.beamer-inhalt {
+    -fx-padding: 30;
+    -fx-spacing: 30;
+}
+
+.beamer-spalte {
+    -fx-spacing: 30;
+}
+
+.beamer-bereich {
+    -fx-background-color: #1b263b;
+    -fx-background-radius: 12;
+    -fx-padding: 20;
+    -fx-spacing: 12;
+}
+
+.beamer-bereich-titel {
+    -fx-text-fill: #ffd60a;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.beamer-platzhalter {
+    -fx-fill: #778da9;
+    -fx-font-size: 24px;
+}
+
+/* Zeilen in den Bereichen (z.B. Begegnungen) */
+.beamer-begegnung-zeile {
+    -fx-padding: 6 0 6 0;
+}
+
+.beamer-zeile {
+    -fx-fill: #e0e1dd;
+    -fx-font-size: 26px;
+}
+
+.beamer-zeile-ergebnis {
+    -fx-fill: #ffd60a;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+/* Tabelle der Einzelergebnisse */
+.beamer-tabelle {
+    -fx-hgap: 30;
+    -fx-vgap: 8;
+    -fx-padding: 10 0 0 0;
+}
+
+.beamer-tabelle-kopf {
+    -fx-fill: #778da9;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+/* ScrollPane der Einzelergebnisse durchsichtig machen, damit der dunkle Hintergrund bleibt */
+.beamer-scroll {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.beamer-scroll > .viewport {
+    -fx-background-color: transparent;
+}

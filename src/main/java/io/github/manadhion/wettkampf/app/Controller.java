@@ -9,6 +9,7 @@ import io.github.manadhion.wettkampf.dao.SaisonDAO;
 import io.github.manadhion.wettkampf.dao.SchuetzeDAO;
 import io.github.manadhion.wettkampf.dao.WettkampftageDAO;
 import io.github.manadhion.wettkampf.view.AltersklasseView;
+import io.github.manadhion.wettkampf.view.BeamerView;
 import io.github.manadhion.wettkampf.view.BegegnungView;
 import io.github.manadhion.wettkampf.view.LigaView;
 import io.github.manadhion.wettkampf.view.Main;
@@ -39,6 +40,7 @@ public class Controller {
     private AltersklasseView alterView;
     private SchuetzeView schuetzeView;
     public BegegnungView begegnungView;
+    private BeamerView beamerView;
 
     //Objekt OwnAlert anlegen
     OwnAlert alert = new OwnAlert();
@@ -177,6 +179,16 @@ public class Controller {
         return ergebnis;
     }
 
+    //Gesamtergebnis einer Mannschaft an einem Tag (Summe der besten 3 Schützen)
+    public int gesamtErgebnisBeste3(String mannschaftID, String wettkampftagID) {
+
+        //Objekt zum kommunizieren mit DB erzeugen
+        ErgebnisseDAO eDAO = new ErgebnisseDAO();
+
+        //Methode aus DAO ausführen
+        return eDAO.gesamtErgebnisBeste3(mannschaftID, wettkampftagID);
+    }
+
     //alle Ligen abrufen
     public List<Liga> alleLigen() {
 
@@ -215,6 +227,12 @@ public class Controller {
         SaisonDAO sDAO = new SaisonDAO();
         List<Saison> saison = sDAO.alleSaisons();
         return saison;
+    }
+
+    //Saison mit ID finden
+    public Saison saisonMitId(String id) {
+        SaisonDAO sDAO = new SaisonDAO();
+        return sDAO.saisonMitId(id);
     }
 
     //Begegnungen eines Wettkampftages abfragen
@@ -580,6 +598,19 @@ public class Controller {
         bDAO.insert(b);
         begegnungView.close();
         viewMain.begegnungenAnzeigen();
+    }
+
+    //Beamer-Anzeige für einen Wettkampftag öffnen
+    public void beamerFenster(Wettkampftage tag) {
+        //ist bereits ein Beamer-Fenster offen, dieses erst schließen, damit nur eines läuft
+        if (beamerView != null && beamerView.isShowing()) {
+            beamerView.close();
+        }
+        BeamerView bView = new BeamerView();
+        bView.setController(this); //bestehenden Controller reinreichen
+        this.beamerView = bView;   //Controller merkt sich die View
+        bView.beamerStarten(tag);  //Szene aufbauen und starten
+        bView.show();
     }
 
     //Fenster zur eingabe einer neuen Begegnung öffnen

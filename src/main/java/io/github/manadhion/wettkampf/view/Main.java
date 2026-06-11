@@ -22,8 +22,6 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
@@ -53,6 +51,7 @@ public class Main extends Application {
     private VBox tagAnzeige = new VBox();
     private Button ergebnisButton = new Button("Speichern");
     private Button begegnungButton;
+    private Button beamerButton = new Button("Beamer-Anzeige starten");
 
     //Einstiegspunkt, erzeugt eine Instanz und startet die Methode start aus der App-Klasse
     public static void main(String[] args) {
@@ -82,7 +81,7 @@ public class Main extends Application {
         //Überschrift
         Text ueberschrift = new Text("Blasrohr - Wettkampf - Manager");
         ueberschrift.getStyleClass().add("ueberschrift"); //Aufrufname für die .css Datei
-        top.getChildren().add(ueberschrift);
+        top.getChildren().add(ueberschrift);       
 
         //Container für beide Bildhälften
         HBox haelften = new HBox();
@@ -108,6 +107,19 @@ public class Main extends Application {
 
         // links nicht über die bevorzugte Breite hinaus wachsen lassen
         links.setMaxWidth(Region.USE_PREF_SIZE);
+
+        //Button um die Beamer-Anzeige des gewählten Wettkampftages zu starten
+        beamerButton.setDisable(true); //erst aktiv wenn ein Wettkampftag gewählt ist
+        Tooltip tipBeamer = new Tooltip("Beamer-Anzeige für den gewählten Wettkampftag starten");
+        tipBeamer.setShowDelay(Duration.millis(300));
+        beamerButton.setTooltip(tipBeamer);
+        beamerButton.setOnAction(event -> {
+            Wettkampftage tag = wTageBox.getSelectionModel().getSelectedItem();
+            if (tag != null) {
+                controller.beamerFenster(tag);
+            }
+        });
+        links.getChildren().add(beamerButton);
 
         //Textfeld für die Auswahl der Saison
         Text saisonText = new Text("Saison: ");
@@ -257,13 +269,15 @@ public class Main extends Application {
             (obs, alterTag, neuerTag) -> {
 
                 if (neuerTag == null) {
-                    //wenn kein Tag gewählt ist, löschen- und bearbeiten-Button deaktivieren
+                    //wenn kein Tag gewählt ist, löschen-, bearbeiten- und Beamer-Button deaktivieren
                     wtMinusButton.setDisable(true);
                     wtEditButton.setDisable(true);
+                    beamerButton.setDisable(true);
                 } else {
-                    //wenn ein Tag gewählt ist, löschen- und bearbeiten-Button aktivieren und begegnungen aktuallisieren
+                    //wenn ein Tag gewählt ist, löschen-, bearbeiten- und Beamer-Button aktivieren und begegnungen aktuallisieren
                     wtMinusButton.setDisable(false);
                     wtEditButton.setDisable(false);
+                    beamerButton.setDisable(false);
                     begegnungenAnzeigen();
                 }
             });
@@ -572,56 +586,10 @@ public class Main extends Application {
             Mannschaft heim = controller.mannschaftMitID(b.getHeim());
             Mannschaft gegner = controller.mannschaftMitID(b.getGegner());
 
-            //Liste der Schützen der Mannschaften holen
-            List<Schuetze> heimSchuetzen = controller.schuetzenVonMannschaft(heim.getId());
-            List<Schuetze> gegnerSchuetzen = controller.schuetzenVonMannschaft(gegner.getId());
+            //Gesamtergebnisse (Summe der besten 3 Schützen) aus der DB holen
+            int gesamtHeim = controller.gesamtErgebnisBeste3(heim.getId(), b.getWettkampftag());
+            int gesamtGegner = controller.gesamtErgebnisBeste3(gegner.getId(), b.getWettkampftag());
 
-            //Ergebnissliste aller Ergebnisse der Schützen die bereits geschossen haben
-            List<Integer> ergebnisHeim = new ArrayList<>();
-            List<Integer> ergebnisGegner = new ArrayList<>();
-
-            //Ergebnisse aller Schützen die Heute bereits geschossen haben in die Liste aufnehmen
-            for(Schuetze s :heimSchuetzen) {
-                Ergebnisse e = controller.ergebnisFuer(s.getId(), b.getWettkampftag());
-                if (e != null){
-                    ergebnisHeim.add(e.getErgebnis());
-                }
-            }
-            Collections.sort(heimSchuetzen, Collections.reverseOrder()); //Liste absteigend sortieren
-
-            //Ergebnisse aller Schützen die Heute bereits geschossen haben in die Liste aufnehmen
-            for(Schuetze s :gegnerSchuetzen) {
-                Ergebnisse e = controller.ergebnisFuer(s.getId(), b.getWettkampftag());
-                if (e != null){
-                    ergebnisGegner.add(e.getErgebnis());
-                }
-            }
-            Collections.sort(gegnerSchuetzen, Collections.reverseOrder());  //Liste absteigend sortieren
-
-            //Variablen für die Gesamtergebnisse
-            int gesamtHeim = 0; //Gesamtergebnis
-            int gesamtGegner = 0; //Gesamtergebnis
-
-            //Die besten 3 Ergebnisse zum Gesamtergebnis zählen, oder alle wenn noch keine 3 vorhanden sind
-            if (ergebnisHeim.size() >= 3) {
-                gesamtHeim = ergebnisHeim.get(0) + ergebnisHeim.get(1) + ergebnisHeim.get(2);
-            }
-            else {
-                for (int i :ergebnisHeim) {
-                    gesamtHeim += i;
-                }
-            }
-
-            //Die besten 3 Ergebnisse zum Gesamtergebnis zählen, oder alle wenn noch keine 3 vorhanden sind
-            if (ergebnisGegner.size() >= 3) {
-                gesamtGegner = ergebnisGegner.get(0) + ergebnisGegner.get(1) + ergebnisGegner.get(2);
-            }
-            else {
-                for (int i :ergebnisGegner) {
-                    gesamtGegner += i;
-                }
-            }
-            
             HBox tagAnzeigeBox = new HBox();
             tagAnzeigeBox.getStyleClass().add("containerLinks"); //Aufrufname für die .css Datei
             tagAnzeige.getChildren().add(tagAnzeigeBox);
