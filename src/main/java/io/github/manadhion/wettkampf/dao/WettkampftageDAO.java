@@ -57,6 +57,29 @@ public class WettkampftageDAO {
 
     }
 
+    //bestehenden Wettkampftag ändern
+    public void update(Wettkampftage wettkampftage) {
+
+        String sql = "UPDATE wettkampftage SET datum=?, ausrichterverein=?, saisonID=? WHERE id=?";
+
+        //Verbindung zu DB und arbeit ausführen
+        try (Connection con = DBController.getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)){
+
+			//set Values
+            ps.setObject(1, wettkampftage.getDatum());
+            ps.setString(2, wettkampftage.getAusrichterVerein());
+            ps.setString(3, wettkampftage.getSaisonID());
+            ps.setString(4, wettkampftage.getId());
+
+			ps.executeUpdate();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+    }
+
     //Liste mit allen Wettkampftagen
     public List<Wettkampftage> alleTage() {
         List<Wettkampftage> wettkampftage = new ArrayList<>();
@@ -107,5 +130,25 @@ public class WettkampftageDAO {
 		}
 
         return wettkampftage;
+    }
+
+    //Wettkampftag löschen, falls falsch eingetragen oder ausgefallen
+    public int delete(String id) {
+        String sql = "DELETE FROM wettkampftage WHERE id=?;";
+
+        //return Statement
+        int erg = 0;
+
+        //Löschvorgang
+        try(Connection con = DBController.getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)){
+			ps.setString(1, id);;
+			erg = ps.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		//wenn erg >0 ist war das Löschen erfolgreich
+		return erg;
     }
 }

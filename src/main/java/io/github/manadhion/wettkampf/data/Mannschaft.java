@@ -2,6 +2,8 @@ package io.github.manadhion.wettkampf.data;
 
 import java.util.UUID;
 
+import io.github.manadhion.wettkampf.app.Controller;
+
 public class Mannschaft {
 
     //Parameter
@@ -9,10 +11,13 @@ public class Mannschaft {
     private String name;    //Name der Mannschaft
     private String klasse;  //Klasse in der sich die Mannschaft befindet, z.B. A-Klasse
 
+    //Controller-Objekt
+    Controller controller = new Controller();
+
     //Konstruktor für neue Mannschaft
     public Mannschaft(String name, String klasse) {
         this.name = name;
-        this.klasse = klasse;
+        this.klasse = klasse; //Referenz auf die Liga in der sich die Mannschaft befindet
 
         //id erzeugen
         id = UUID.randomUUID().toString();
@@ -48,7 +53,9 @@ public class Mannschaft {
     //Anzeigetext für die ComboBox, sonst würde dort Mannschaft@123abc stehen
     @Override
     public String toString() {
-        return name;
+        Liga l = controller.ligaMitIdFinden(klasse);
+        String anzeigeText = name + " - " + l.getLigaName();
+        return anzeigeText;
     }
 
 }

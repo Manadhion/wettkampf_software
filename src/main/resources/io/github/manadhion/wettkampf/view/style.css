@@ -100,6 +100,19 @@
 }
 .button.danger:hover { -fx-background-color: #dd5a5a; }
 
+/* nur für Buttons mit der Klasse edit */
+.button.edit {
+    -fx-background-color: #f59e0b;
+}
+.button.edit:hover { -fx-background-color: #d98a06; }
+
+/*Formatierung für Text der Begegnungen */
+.Text-begegnung {
+    -fx-font-size: 16px;            /* Textgröße */
+    -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
+    -fx-fill: #220c9c;         /* Textfarbe */
+}
+
 
 /*oberstes Layout - newSaison - Fenster*/
 .newSaison-container {
@@ -159,6 +172,167 @@
 
 /* Style für die ComboBox in newWettkampftag*/
 .combo-newWettkampftag {
+    -fx-pref-width: 80px;   /* gewünschte Breite */
+    -fx-min-width: 80px;    /* nicht kleiner */
+    -fx-max-width: 80px;    /* nicht größer  */
+}
+
+/*oberstes Layout - newMannschaft - Fenster*/
+.newMannschaft-container {
+    -fx-background-color: white;
+    /*-fx-alignment: top-center;    zentriert Elemente horizontal*/
+    -fx-spacing: 10;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 10;        /*Abstand nach aussen*/
+}
+
+/* Style für die Boxen in MannschaftView */
+.Box-newMannschaft {
+    -fx-spacing: 4;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 4;        /*Abstand nach aussen*/
+}
+
+/*Formatierung für Text in MannschaftView */
+.Text-newMannschaft {
+    -fx-font-size: 16px;            /* Textgröße */
+    -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
+    -fx-fill: #220c9c;         /* Textfarbe */
+}
+
+/*TextField in MannschaftView */
+.TextField-newMannschaft {
+    -fx-pref-width: 250px;  /* gewünschte Breite */
+    -fx-min-width: 250px;    /* nicht kleiner */
+    -fx-max-width: 250px;    /* nicht größer  */
+}
+
+/* Style für die ComboBox in newMannschaft*/
+.combo-newMannschaft {
+    -fx-pref-width: 80px;   /* gewünschte Breite */
+    -fx-min-width: 80px;    /* nicht kleiner */
+    -fx-max-width: 80px;    /* nicht größer  */
+}
+
+/*oberstes Layout - newLiga - Fenster*/
+.newLiga-container {
+    -fx-background-color: white;
+    /*-fx-alignment: top-center;    zentriert Elemente horizontal*/
+    -fx-spacing: 10;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 10;        /*Abstand nach aussen*/
+}
+
+/* Style für die Boxen in LigaView */
+.Box-newLiga {
+    -fx-spacing: 4;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 4;        /*Abstand nach aussen*/
+}
+
+/*Formatierung für Text in LigaView */
+.Text-newLiga {
+    -fx-font-size: 16px;            /* Textgröße */
+    -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
+    -fx-fill: #220c9c;         /* Textfarbe */
+}
+
+/*TextField in LigaView */
+.TextField-newLiga {
+    -fx-pref-width: 250px;  /* gewünschte Breite */
+    -fx-min-width: 250px;    /* nicht kleiner */
+    -fx-max-width: 250px;    /* nicht größer  */
+}
+
+/*oberstes Layout - newSchuetze - Fenster*/
+.newSchuetze-container {
+    -fx-background-color: white;
+    /*-fx-alignment: top-center;    zentriert Elemente horizontal*/
+    -fx-spacing: 10;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 10;        /*Abstand nach aussen*/
+}
+
+/* Style für die Boxen in SchuetzetView */
+.Box-newSchuetze {
+    -fx-spacing: 4;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 4;        /*Abstand nach aussen*/
+}
+
+/*Formatierung für Text in SchuetzetView  */
+.Text-newSchuetze {
+    -fx-font-size: 16px;            /* Textgröße */
+    -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
+    -fx-fill: #220c9c;         /* Textfarbe */
+}
+
+/*TextField in SchuetzetView  */
+.TextField-newSchuetze {
+    -fx-pref-width: 250px;  /* gewünschte Breite */
+    -fx-min-width: 250px;    /* nicht kleiner */
+    -fx-max-width: 250px;    /* nicht größer  */
+}
+
+/* Style für die ComboBox in newSchuetze*/
+.combo-newSchuetze {
+    -fx-pref-width: 80px;   /* gewünschte Breite */
+    -fx-min-width: 80px;    /* nicht kleiner */
+    -fx-max-width: 80px;    /* nicht größer  */
+}
+
+/*oberstes Layout - newAltersklasse - Fenster*/
+.newAlter-container {
+    -fx-background-color: white;
+    /*-fx-alignment: top-center;    zentriert Elemente horizontal*/
+    -fx-spacing: 10;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 10;        /*Abstand nach aussen*/
+}
+
+/* Style für die Boxen in AlterView */
+.Box-newAlter {
+    -fx-spacing: 4;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 4;        /*Abstand nach aussen*/
+}
+
+/*Formatierung für Text in AlterView   */
+.Text-newAlter {
+    -fx-font-size: 16px;            /* Textgröße */
+    -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
+    -fx-fill: #220c9c;         /* Textfarbe */
+}
+
+/*TextField in AlterView   */
+.TextField-newAlter {
+    -fx-pref-width: 250px;  /* gewünschte Breite */
+    -fx-min-width: 250px;    /* nicht kleiner */
+    -fx-max-width: 250px;    /* nicht größer  */
+}
+
+/*oberstes Layout - newBegegnung - Fenster*/
+.newBegegnung-container {
+    -fx-background-color: white;
+    /*-fx-alignment: top-center;    zentriert Elemente horizontal*/
+    -fx-spacing: 10;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 10;        /*Abstand nach aussen*/
+}
+
+/* Style für die Boxen in BegegnungView */
+.Box-newBegegnung {
+    -fx-spacing: 4;            /*Abstand der Elemente innerhalb */
+    -fx-padding: 4;        /*Abstand nach aussen*/
+}
+
+/*Formatierung für Text in BegegnungView   */
+.Text-newBegegnung {
+    -fx-font-size: 16px;            /* Textgröße */
+    -fx-font-weight: bold;          /* Dicke: normal | bold | 100–900 */
+    -fx-fill: #220c9c;         /* Textfarbe */
+}
+
+/*TextField in BegegnungView   */
+.TextField-newBegegnung {
+    -fx-pref-width: 250px;  /* gewünschte Breite */
+    -fx-min-width: 250px;    /* nicht kleiner */
+    -fx-max-width: 250px;    /* nicht größer  */
+}
+
+/* Style für die ComboBox in newBegegnung*/
+.combo-newBegegnung {
     -fx-pref-width: 80px;   /* gewünschte Breite */
     -fx-min-width: 80px;    /* nicht kleiner */
     -fx-max-width: 80px;    /* nicht größer  */

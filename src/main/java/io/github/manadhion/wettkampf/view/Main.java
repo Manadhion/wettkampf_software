@@ -21,6 +21,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +37,9 @@ import io.github.manadhion.wettkampf.data.Wettkampftage;
 
 public class Main extends Application {
 
+    //Formatter für die deutsche Datumsanzeige
+    private static final DateTimeFormatter DATUM_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
     //Controller-Objekt erzeugen
     private Controller controller = new Controller(this);
 
@@ -48,6 +52,7 @@ public class Main extends Application {
     private Text aktTagText;
     private VBox tagAnzeige = new VBox();
     private Button ergebnisButton = new Button("Speichern");
+    private Button begegnungButton;
 
     //Einstiegspunkt, erzeugt eine Instanz und startet die Methode start aus der App-Klasse
     public static void main(String[] args) {
@@ -144,6 +149,18 @@ public class Main extends Application {
             controller.saisonLöschenWarnen(id);
 		});
 
+        //Buton um Saison zu bearbeiten
+        Button saEditButton = new Button("✎");
+        saEditButton.setDisable(true);
+        saEditButton.getStyleClass().add("edit"); //Aufrufname für die .css Datei
+        saisonContainer.getChildren().add(saEditButton);
+        Tooltip tipsaEdit = new Tooltip("Saison bearbeiten");
+        tipsaEdit.setShowDelay(Duration.millis(300));
+        saEditButton.setTooltip(tipsaEdit);
+        saEditButton.setOnAction(event -> {
+            controller.saisonBearbeitenFenster(saisonCombo.getSelectionModel().getSelectedItem());
+		});
+
         //Textfeld für die Auswahl des Wettkamptages
         Text wTagText = new Text("Wettkampftag: ");
         wTagText.getStyleClass().add("ueberschriftLinks"); //Aufrufname für die .css Datei
@@ -168,7 +185,7 @@ public class Main extends Application {
                 if (w == null) {
                     return "";
                 }
-                return w.getDatum().toString();
+                return w.getDatum().format(DATUM_FORMAT);
             }
 
              @Override
@@ -198,7 +215,19 @@ public class Main extends Application {
         tipwtMinus.setShowDelay(Duration.millis(300));
         wtMinusButton.setTooltip(tipwtMinus);
         wtMinusButton.setOnAction(event -> {
-            
+            controller.wTagLöschenWarnen(wTageBox.getSelectionModel().getSelectedItem().getId(), saisonCombo.getSelectionModel().getSelectedItem().getId());
+		});
+
+        //Buton um Wettkampftag zu bearbeiten
+        Button wtEditButton = new Button("✎");
+        wtEditButton.setDisable(true);
+        wtEditButton.getStyleClass().add("edit"); //Aufrufname für die .css Datei
+        wTagContainer.getChildren().add(wtEditButton);
+        Tooltip tipwtEdit = new Tooltip("Wettkampftag bearbeiten");
+        tipwtEdit.setShowDelay(Duration.millis(300));
+        wtEditButton.setTooltip(tipwtEdit);
+        wtEditButton.setOnAction(event -> {
+            controller.wTagBearbeitenFenster(wTageBox.getSelectionModel().getSelectedItem());
 		});
 
         //Combobox für Wettkampftage soll reagieren, wenn eine Saison ausgewählt wird
@@ -211,6 +240,7 @@ public class Main extends Application {
                     wTageBox.setDisable(true);
                     wTagPlusButton.setDisable(true);
                     saMinusButton.setDisable(true);
+                    saEditButton.setDisable(true);
                 } else {
                     //Wettkampftage dieser Saison laden und Box aktivieren, sowie Saisonlöschen-Button aktivieren
                     wTageBox.setItems(FXCollections.observableArrayList(
@@ -218,6 +248,23 @@ public class Main extends Application {
                     wTageBox.setDisable(false);
                     wTagPlusButton.setDisable(false);
                     saMinusButton.setDisable(false);
+                    saEditButton.setDisable(false);
+                }
+            });
+
+        //Wettkmapftage löschen-Button aktivieren wenn ein Tag ausgewählt ist
+        wTageBox.getSelectionModel().selectedItemProperty().addListener(
+            (obs, alterTag, neuerTag) -> {
+
+                if (neuerTag == null) {
+                    //wenn kein Tag gewählt ist, löschen- und bearbeiten-Button deaktivieren
+                    wtMinusButton.setDisable(true);
+                    wtEditButton.setDisable(true);
+                } else {
+                    //wenn ein Tag gewählt ist, löschen- und bearbeiten-Button aktivieren und begegnungen aktuallisieren
+                    wtMinusButton.setDisable(false);
+                    wtEditButton.setDisable(false);
+                    begegnungenAnzeigen();
                 }
             });
 
@@ -244,6 +291,33 @@ public class Main extends Application {
         Tooltip tipmPlus = new Tooltip("Neue Mannschaft anlegen");
         tipmPlus.setShowDelay(Duration.millis(300));
         mPlusButton.setTooltip(tipmPlus);
+        mPlusButton.setOnAction(event -> {
+            controller.neueeMannschaftFenster();
+        });
+
+        //Buton um Mannschaft zu löschen
+        Button mMinusButton = new Button("-");
+        mMinusButton.setDisable(true);
+        mMinusButton.getStyleClass().add("danger"); //Aufrufname für die .css Datei
+        mannschaftBox.getChildren().add(mMinusButton);
+        Tooltip tipmMinus = new Tooltip("Mannschaft löschen");
+        tipmMinus.setShowDelay(Duration.millis(300));
+        mMinusButton.setTooltip(tipmMinus);
+        mMinusButton.setOnAction(event -> {
+            controller.mannschaftLöschenWarnen(mannschaftCombo.getSelectionModel().getSelectedItem().getId());
+		});
+
+        //Buton um Mannschaft zu bearbeiten
+        Button mEditButton = new Button("✎");
+        mEditButton.setDisable(true);
+        mEditButton.getStyleClass().add("edit"); //Aufrufname für die .css Datei
+        mannschaftBox.getChildren().add(mEditButton);
+        Tooltip tipmEdit = new Tooltip("Mannschaft bearbeiten");
+        tipmEdit.setShowDelay(Duration.millis(300));
+        mEditButton.setTooltip(tipmEdit);
+        mEditButton.setOnAction(event -> {
+            controller.mannschaftBearbeitenFenster(mannschaftCombo.getSelectionModel().getSelectedItem());
+		});
 
         //Textfeld für die Auswahl des Schützen
         Text schuetzeText = new Text("Schütze: ");
@@ -272,6 +346,48 @@ public class Main extends Application {
         Tooltip tipsPlus = new Tooltip("Neuen Schützen anlegen");
         tipsPlus.setShowDelay(Duration.millis(300));
         sPlusButton.setTooltip(tipsPlus);
+        sPlusButton.setOnAction(event -> {
+            controller.neueSchuetzeFenster(mannschaftCombo.getSelectionModel().getSelectedItem());
+        });
+
+        //Buton um Schützen zu löschen
+        Button sMinusButton = new Button("-");
+        sMinusButton.setDisable(true);
+        sMinusButton.getStyleClass().add("danger"); //Aufrufname für die .css Datei
+        schuetzeBox.getChildren().add(sMinusButton);
+        Tooltip tipsMinus = new Tooltip("Schützen löschen");
+        tipsMinus.setShowDelay(Duration.millis(300));
+        sMinusButton.setTooltip(tipsMinus);
+        sMinusButton.setOnAction(event -> {
+            controller.schuetzeLöschenWarnen(schuetzeCombo.getSelectionModel().getSelectedItem().getId());
+		});
+
+        //Buton um Schützen zu bearbeiten
+        Button sEditButton = new Button("✎");
+        sEditButton.setDisable(true);
+        sEditButton.getStyleClass().add("edit"); //Aufrufname für die .css Datei
+        schuetzeBox.getChildren().add(sEditButton);
+        Tooltip tipsEdit = new Tooltip("Schützen bearbeiten");
+        tipsEdit.setShowDelay(Duration.millis(300));
+        sEditButton.setTooltip(tipsEdit);
+        sEditButton.setOnAction(event -> {
+            controller.schuetzeBearbeitenFenster(schuetzeCombo.getSelectionModel().getSelectedItem());
+		});
+
+        //Schütze löschen-Button aktivieren wenn ein Schütze ausgewählt ist
+        schuetzeCombo.getSelectionModel().selectedItemProperty().addListener(
+            (obs, alterSchuetze, neuerSchuetze) -> {
+
+                if (neuerSchuetze == null) {
+                    //wenn kein Schütze gewählt ist, löschen- und bearbeiten-Button deaktivieren
+                    sMinusButton.setDisable(true);
+                    sEditButton.setDisable(true);
+                } else {
+                    //wenn ein Schütze gewählt ist, löschen- und bearbeiten-Button aktivieren
+                    sMinusButton.setDisable(false);
+                    sEditButton.setDisable(false);
+                }
+            });
 
         //Combobox für Schützen soll reagieren, wenn eine Mannschaft ausgewählt wird
         mannschaftCombo.getSelectionModel().selectedItemProperty().addListener(
@@ -282,12 +398,16 @@ public class Main extends Application {
                     schuetzeCombo.getItems().clear();
                     schuetzeCombo.setDisable(true);
                     sPlusButton.setDisable(true);
+                    mMinusButton.setDisable(true);
+                    mEditButton.setDisable(true);
                 } else {
                     //Schützen dieser Mannschaft laden und Box aktivieren
                     schuetzeCombo.setItems(FXCollections.observableArrayList(
                         controller.schuetzenVonMannschaft(neueMannschaft.getId())));
                     schuetzeCombo.setDisable(false);
                     sPlusButton.setDisable(false);
+                    mMinusButton.setDisable(false);
+                    mEditButton.setDisable(false);
                 }
             });
         
@@ -331,7 +451,7 @@ public class Main extends Application {
             begegnungenAnzeigen();
         });
 
-        //Ergebnisfeld soll reagieren, wenn sich der Schütze ändert
+        //Ergebnisfeld sollen reagieren, wenn sich der Schütze ändert
         schuetzeCombo.getSelectionModel().selectedItemProperty().addListener(
             (obs, alt, neu) -> {
                 ergebnisAktualisieren();
@@ -346,9 +466,23 @@ public class Main extends Application {
 
         //Textfeld-Überschrift für den aktuell angezeigten Wettkampftag
         aktTagText = new Text();
-        aktTagAnzeigen();
         aktTagText.getStyleClass().add("ueberschriftRechts"); //Aufrufname für die .css Datei
+
+        //Button um neue Begegnbung an dem Tag anzulegen
+        begegnungButton = new Button("Begegnung anlegen");
+        Tooltip tipBegegnung = new Tooltip("Neue Begegnung an diesem Wettkampftag anlegen");
+        tipBegegnung.setShowDelay(Duration.millis(300));
+        begegnungButton.setTooltip(tipBegegnung);
+        begegnungButton.setOnAction(event -> {
+            controller.neueBegegnungFenster(wTageBox.getSelectionModel().getSelectedItem().getId());
+        });
+
+        //Überschrift und Button-Status anhand der aktuellen Auswahl setzen (braucht aktTagText und begegnungButton)
+        aktTagAnzeigen();
+
+        //Elemente in gewünschter Reihenfolge einfügen
         rechts.getChildren().add(aktTagText);
+        rechts.getChildren().add(begegnungButton);
 
         //Platzhalter-Box für Begegnungen einfügen
         rechts.getChildren().add(tagAnzeige);
@@ -414,13 +548,18 @@ public class Main extends Application {
 
         if (tag == null) {
             aktTagText.setText("Wettkampf am — (kein Tag gewählt)");
+            begegnungButton.setDisable(true);
         } else {
-            aktTagText.setText("Wettkampf am " + tag.getDatum().toString());
+            aktTagText.setText("Wettkampf am " + tag.getDatum().format(DATUM_FORMAT) + " - " + tag.getAusrichterVerein());
+            begegnungButton.setDisable(false);
         }
     }
 
     //Begegnungen in tagAnzeige anzeigen
     public void begegnungenAnzeigen() {
+
+        //Inhalt vor dem neu-Aufbau löschen
+        tagAnzeige.getChildren().clear();
 
         //Begegnungen auslesen von diesem Tag
         Wettkampftage tag = wTageBox.getSelectionModel().getSelectedItem();
@@ -483,10 +622,46 @@ public class Main extends Application {
                 }
             }
             
+            HBox tagAnzeigeBox = new HBox();
+            tagAnzeigeBox.getStyleClass().add("containerLinks"); //Aufrufname für die .css Datei
+            tagAnzeige.getChildren().add(tagAnzeigeBox);
+
             //Text der als Begegnung angezeigt wird   
-            Text begegnung = new Text(heim.getName() + " vs. " + gegner.getName() + " " + gesamtHeim + " : " + gesamtGegner);
-            begegnung.getStyleClass().add("begegnung-Text"); //Aufrufname für die .css Datei
-            tagAnzeige.getChildren().add(begegnung);
+            Text heimBegegnung = new Text(heim.getName());
+            heimBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
+
+            //Text der als Begegnung angezeigt wird   
+            Text vsBegegnung = new Text(" vs. ");
+             vsBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
+
+            //Text der als Begegnung angezeigt wird   
+            Text gegnerBegegnung = new Text(gegner.getName());
+            gegnerBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
+
+            //Text der als Begegnung angezeigt wird   
+            Text ergHeimBegegnung = new Text(String.valueOf(gesamtHeim));
+            ergHeimBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
+
+            //Text der als Begegnung angezeigt wird   
+            Text sepBegegnung = new Text(" : ");
+            sepBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
+
+            //Text der als Begegnung angezeigt wird   
+            Text ergGegnerBegegnung = new Text(String.valueOf(gesamtGegner));
+            ergGegnerBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
+
+            tagAnzeigeBox.getChildren().addAll(heimBegegnung, vsBegegnung, gegnerBegegnung, ergHeimBegegnung, sepBegegnung, ergGegnerBegegnung);
+
+            //Buton um Begegnung zu löschen
+            Button beMinusButton = new Button("-");
+            beMinusButton.getStyleClass().add("danger"); //Aufrufname für die .css Datei
+            tagAnzeigeBox.getChildren().add(beMinusButton);
+            Tooltip tipbeMinus = new Tooltip("Diese Begegnung löschen");
+            tipbeMinus.setShowDelay(Duration.millis(300));
+            beMinusButton.setTooltip(tipbeMinus);
+            beMinusButton.setOnAction(event -> {
+                controller.begegnungLöschenWarnen(b.getId());
+            });
 
         }
 
@@ -495,5 +670,20 @@ public class Main extends Application {
     //ComboBox für Saison neu aus der DB laden
     public void saisonComboAktualisieren() {
         saisonCombo.setItems(FXCollections.observableArrayList(controller.alleSaisons()));
+    }
+
+    //ComboBox für Wettkampftag neu aus der DB laden
+    public void wTagComboAktualisieren(String id) {
+        wTageBox.setItems(FXCollections.observableArrayList(controller.wettkampftageVonSaison(id)));
+    }
+
+    //ComboBox für Mannschaft neu aus der DB laden
+    public void mannschaftComboAktualisieren() {
+        mannschaftCombo.setItems(FXCollections.observableArrayList(controller.alleMannschaften()));
+    }
+
+    //ComboBox für Schützen neu aus der DB laden
+    public void schuetzeComboAktualisieren(String id) {
+        schuetzeCombo.setItems(FXCollections.observableArrayList(controller.schuetzenVonMannschaft(id)));
     }
 }

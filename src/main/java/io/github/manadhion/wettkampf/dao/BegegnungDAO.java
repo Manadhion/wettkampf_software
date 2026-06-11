@@ -79,7 +79,7 @@ public class BegegnungDAO {
     public List<Begegnung> begegnungenAnDiesemTag(String wettkampftag) {
         List<Begegnung> begegnungen = new ArrayList<>();
         
-        String sql = "SELECT * FROM begegnungen WHERE wettkampftag = ?";
+        String sql = "SELECT * FROM begegnung WHERE wettkampftag = ?";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();
@@ -101,5 +101,7 @@ public class BegegnungDAO {
 
         return begegnungen;
     }
+
+    
 
 }

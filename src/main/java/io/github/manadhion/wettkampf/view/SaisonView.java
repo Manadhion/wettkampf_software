@@ -39,9 +39,10 @@ public class SaisonView extends Stage {
 		eqAlert.showAndWait();
 	}
 
-    public void newSaison(){
+    //Formular zum Anlegen (bearbeiten == null) oder Bearbeiten (bearbeiten != null) einer Saison
+    public void saisonFormular(Saison bearbeiten){
 
-        setTitle("Neue Saison anlegen"); //Titel für das Fenster
+        setTitle(bearbeiten == null ? "Neue Saison anlegen" : "Saison bearbeiten"); //Titel für das Fenster
 		setResizable(false);             //die Größe des Fensters kann nicht geändert werden
 
         //oberstes Layout
@@ -67,6 +68,13 @@ public class SaisonView extends Stage {
         TextField saisonZwei = new TextField();
         saisonZwei.getStyleClass().add("TextField-newSaison"); //Aufrufname für die .css Datei
         saisonBox.getChildren().addAll(saisonEins, trennung, saisonZwei);
+
+        //beim Bearbeiten die bestehende Jahreszahl auf beide Felder aufteilen (z.B. 2526 -> 25 / 26)
+        if (bearbeiten != null) {
+            String jahre = String.format("%04d", bearbeiten.getName());
+            saisonEins.setText(jahre.substring(0, 2));
+            saisonZwei.setText(jahre.substring(2));
+        }
 
         //ButtonBox
         HBox buttonBox = new HBox();
@@ -97,15 +105,27 @@ public class SaisonView extends Stage {
 				return;
 			}
 
-            //prüfen ob die Saison bereits existiert
-            if (controller.saisonExistiert(saisonName)) {
-                this.valueAlert("Diese Saison gibt es bereits!");
-                return;
-            }
+            if (bearbeiten == null) {
+                //prüfen ob die Saison bereits existiert
+                if (controller.saisonExistiert(saisonName)) {
+                    this.valueAlert("Diese Saison gibt es bereits!");
+                    return;
+                }
 
-            //neue Saison speichern
-            Saison s = new Saison(saisonName);
-            controller.neueSaisonAnlegen(s);
+                //neue Saison speichern
+                Saison s = new Saison(saisonName);
+                controller.neueSaisonAnlegen(s);
+            } else {
+                //nur prüfen wenn der Name geändert wurde, sonst meldet die Saison sich selbst als vorhanden
+                if (saisonName != bearbeiten.getName() && controller.saisonExistiert(saisonName)) {
+                    this.valueAlert("Diese Saison gibt es bereits!");
+                    return;
+                }
+
+                //bestehende Saison ändern, ID bleibt erhalten
+                bearbeiten.setName(saisonName);
+                controller.saisonAktualisieren(bearbeiten);
+            }
         });
 
         //Button zum abbrechen

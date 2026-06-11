@@ -10,10 +10,10 @@ public class Schuetze {
     private String vorname;
     private String nachname;
     private String mannschaftid;    //Referenz zur Mannschaft
-    private int altersKlasse;       //Altersklasse z.B. Jugend, Herren usw.
+    private String altersKlasse;       //Altersklasse z.B. Jugend, Herren usw.
 
     //Konstruktor für neue Schützen
-    public Schuetze(String vorname, String nachname, String mannschaftid, int altersKlasse) {
+    public Schuetze(String vorname, String nachname, String mannschaftid, String altersKlasse) {
         this.vorname = vorname;
         this.nachname = nachname;
         this.mannschaftid = mannschaftid;
@@ -24,7 +24,7 @@ public class Schuetze {
     }
 
         //Konstruktor um Schützen aus DB zu laden
-    public Schuetze(String id, String vorname, String nachname, String mannschaftid, int altersKlasse) {
+    public Schuetze(String id, String vorname, String nachname, String mannschaftid, String altersKlasse) {
         this.id = id;
         this.vorname = vorname;
         this.nachname = nachname;
@@ -32,11 +32,11 @@ public class Schuetze {
         this.altersKlasse = altersKlasse;
     }
 
-    public int getAltersKlasse() {
+    public String getAltersKlasse() {
         return altersKlasse;
     }
 
-    public void setAltersKlasse(int altersKlasse) {
+    public void setAltersKlasse(String altersKlasse) {
         this.altersKlasse = altersKlasse;
     }
 

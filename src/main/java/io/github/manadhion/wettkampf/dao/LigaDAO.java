@@ -1,8 +1,5 @@
 package io.github.manadhion.wettkampf.dao;
 
-import io.github.manadhion.wettkampf.app.DBController;
-import io.github.manadhion.wettkampf.data.Mannschaft;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,78 +8,74 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.manadhion.wettkampf.app.DBController;
+import io.github.manadhion.wettkampf.data.Liga;
+
 //Data Access-Objekt, koordiniert arbeiten zwischen DB-Tabelle und App
-public class MannschaftDAO {
+public class LigaDAO {
     
     //neue Tabelle anlegen wenn sie noch nicht existiert
     public void createTableIfNotExists() {
-        String sql = "CREATE TABLE IF NOT EXISTS mannschaft ("
+        String sql = "CREATE TABLE IF NOT EXISTS liga ("
                 + "id TEXT PRIMARY KEY,"
-                + "name TEXT NOT NULL,"     //Name der Mannschaft
-                + "klasse TEXT REFERENCES liga(id)"    //Klasse in der sich die Mannschaft befindet, z.B. A-Klasse als Referenz auf die Liga-table
+                + "name TEXT NOT NULL"     //Name der Liga
                 + ")";
         
         try (Connection con = DBController.getConnection();
             Statement stmt = con.createStatement()) {
                 stmt.execute(sql);
         } catch (SQLException e) {
-	        throw new RuntimeException("Tabelle 'mannschaft' konnte nicht angelegt werden", e);
+	        throw new RuntimeException("Tabelle 'liga' konnte nicht angelegt werden", e);
 	    }
     }
 
-
     //neue Entität einfügen
-    public void insert(Mannschaft mannschaft) {
+    public void insert(Liga liga) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
-        String sql = "INSERT OR IGNORE INTO mannschaft(id, name, klasse) "
-                + "VALUES(?,?,?)";
+        String sql = "INSERT OR IGNORE INTO liga(id, name) "
+                + "VALUES(?,?)";
 
         //Verbindung zu DB und arbeit ausführen
         try (Connection con = DBController.getConnection();
 				PreparedStatement ps = con.prepareStatement(sql)){
 			
 			//set Values
-            ps.setString(1, mannschaft.getId());
-			ps.setString(2, mannschaft.getName());
-            ps.setString(3, mannschaft.getKlasse());
+            ps.setString(1, liga.getId());
+            ps.setString(2, liga.getLigaName());
 			
 			ps.executeUpdate();
 
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-
     }
 
-    //bestehende Mannschaft ändern
-    public void update(Mannschaft mannschaft) {
+    //bestehende Liga ändern
+    public void update(Liga liga) {
 
-        String sql = "UPDATE mannschaft SET name=?, klasse=? WHERE id=?";
+        String sql = "UPDATE liga SET name=? WHERE id=?";
 
         //Verbindung zu DB und arbeit ausführen
         try (Connection con = DBController.getConnection();
 				PreparedStatement ps = con.prepareStatement(sql)){
 
 			//set Values
-            ps.setString(1, mannschaft.getName());
-            ps.setString(2, mannschaft.getKlasse());
-            ps.setString(3, mannschaft.getId());
+            ps.setString(1, liga.getLigaName());
+            ps.setString(2, liga.getId());
 
 			ps.executeUpdate();
 
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-
     }
 
-    //Liste mit allen Mannschaften
-    public List<Mannschaft> alleMannschaften() {
+    //Liste mit allen Ligen
+    public List<Liga> alleLigen() {
+        List<Liga> ligen = new ArrayList<>();
 
-        List<Mannschaft> mannschaften = new ArrayList<>();
-
-        String sql = "Select * FROM mannschaft";
+        String sql = "Select * FROM liga";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();
@@ -90,49 +83,44 @@ public class MannschaftDAO {
 			
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
-                //für jede Zeile ein neues Objekt von Wettkampftage erzeugen und der Liste hinzufügen
-				Mannschaft m = new Mannschaft(rs.getString(1), rs.getString(2), rs.getString(3));
+                //für jede Zeile ein neues Objekt von Liga erzeugen und der Liste hinzufügen
+				Liga l = new Liga(rs.getString(1), rs.getString(2));
 
-                mannschaften.add(m);
+                ligen.add(l);
 			}
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
-        return mannschaften;
-
+        return ligen;
     }
 
-    //MAnnschaft durch ID finden
-    public Mannschaft mannschaftMitID(String mID) {
+    //Liga durch id finden
+    public Liga ligaMitIdFinden(String id) {
 
-        Mannschaft m;
-
-        String sql = "Select * FROM mannschaft WHERE id=?";
+        Liga l = null;
+        String sql = "Select * FROM liga WHERE id=?";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();
 				PreparedStatement ps = con.prepareStatement(sql)){
 			
-            ps.setString(1, mID);
-
+            ps.setString(1, id);
 			ResultSet rs = ps.executeQuery();
+			l = new Liga(rs.getString(1), rs.getString(2));
 
-            m = new Mannschaft(rs.getString(1), rs.getString(2), rs.getString(3));
-        
-			return m;
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-        
-        return null;
+
+        return l;
     }
 
-    //Mannschaft löschen, falls falsch eingetragen oder ausgefallen
+    //Liga löschen, falls falsch eingetragen oder ausgefallen
     public int delete(String id) {
-        String sql = "DELETE FROM mannschaft WHERE id=?;";
+        String sql = "DELETE FROM liga WHERE id=?;";
 
         //return Statement
         int erg = 0;
@@ -149,7 +137,4 @@ public class MannschaftDAO {
 		//wenn erg >0 ist war das Löschen erfolgreich
 		return erg;
     }
-
-
-
 }

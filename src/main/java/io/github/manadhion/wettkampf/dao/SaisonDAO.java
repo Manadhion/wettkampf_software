@@ -52,6 +52,26 @@ public class SaisonDAO {
 
     }
 
+    //bestehende Saison ändern
+    public void update(Saison saison) {
+
+        String sql = "UPDATE saison SET name=? WHERE id=?";
+
+        //Verbindung zu DB und arbeit ausführen
+        try (Connection con = DBController.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)){
+
+            //set Values
+            ps.setInt(1, saison.getName());
+            ps.setString(2, saison.getId());
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Saison konnte nicht aktualisiert werden", e);
+        }
+    }
+
     //alle Saisons abfragen
     public List<Saison> alleSaisons() {
         List<Saison> saison = new ArrayList<>();

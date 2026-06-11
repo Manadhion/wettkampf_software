@@ -22,7 +22,7 @@ public class SchuetzeDAO {
                 + "vorname TEXT NOT NULL,"
                 + "nachname TEXT NOT NULL,"
                 + "mannschaftid TEXT REFERENCES mannschaft(id) NOT NULL,"   //Referenz zur id der Mannschaft des Schützen
-                + "altersKlasse INTEGER NOT NULL"   //Welcher Altersklasse der Schütze angehört, z.B. Jugend, Herren usw.
+                + "altersKlasse TEXT REFERENCES altersklasse(id) NOT NULL"   //Welcher Altersklasse der Schütze angehört, z.B. Jugend, Herren usw.
                 + ")";
         
         try (Connection con = DBController.getConnection();
@@ -49,8 +49,32 @@ public class SchuetzeDAO {
             ps.setString(2, schuetze.getVorname());
             ps.setString(3, schuetze.getNachname());
             ps.setString(4, schuetze.getMannschaftid());
-            ps.setInt(5, schuetze.getAltersKlasse());
+            ps.setString(5, schuetze.getAltersKlasse());
 			
+			ps.executeUpdate();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+    }
+
+    //bestehenden Schützen ändern
+    public void update(Schuetze schuetze) {
+
+        String sql = "UPDATE schuetze SET vorname=?, nachname=?, mannschaftid=?, altersKlasse=? WHERE id=?";
+
+        //Verbindung zu DB und arbeit ausführen
+        try (Connection con = DBController.getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)){
+
+			//set Values
+            ps.setString(1, schuetze.getVorname());
+            ps.setString(2, schuetze.getNachname());
+            ps.setString(3, schuetze.getMannschaftid());
+            ps.setString(4, schuetze.getAltersKlasse());
+            ps.setString(5, schuetze.getId());
+
 			ps.executeUpdate();
 
 		} catch (SQLException e) {
@@ -75,7 +99,7 @@ public class SchuetzeDAO {
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
                 //für jede Zeile ein neues Objekt von Schuetze erzeugen und der Liste hinzufügen
-				Schuetze s = new Schuetze(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getInt(5));
+				Schuetze s = new Schuetze(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5));
 
                 schuetze.add(s);
 			}
@@ -85,6 +109,26 @@ public class SchuetzeDAO {
 		}
 
         return schuetze;
+    }
+
+    //Schütze löschen, falls falsch eingetragen oder ausgefallen
+    public int delete(String id) {
+        String sql = "DELETE FROM schuetze WHERE id=?;";
+
+        //return Statement
+        int erg = 0;
+
+        //Löschvorgang
+        try(Connection con = DBController.getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)){
+			ps.setString(1, id);;
+			erg = ps.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		//wenn erg >0 ist war das Löschen erfolgreich
+		return erg;
     }
 
 

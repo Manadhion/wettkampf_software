@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import io.github.manadhion.wettkampf.app.Controller;
 import io.github.manadhion.wettkampf.data.Saison;
+import io.github.manadhion.wettkampf.data.Wettkampftage;
 import javafx.collections.FXCollections;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -19,15 +20,19 @@ public class WTagView extends Stage {
 
     //Parameter
     private Controller controller;
+
+    //Objekt der eigenen Alert-Klasse
+    OwnAlert alert = new OwnAlert();
     
     //Controller von aussen setzen (kommt aus Main, kennt viewMain)
     public void setController(Controller controller) {
         this.controller = controller;
     }
 
-    public void newWettkampftag(Saison saisonAuswahl) {
+    //Formular zum Anlegen (bearbeiten == null) oder Bearbeiten (bearbeiten != null) eines Wettkampftages
+    public void wTagFormular(Saison saisonAuswahl, Wettkampftage bearbeiten) {
 
-        setTitle("Neuen Wettkampftag anlegen"); //Titel für das Fenster
+        setTitle(bearbeiten == null ? "Neuen Wettkampftag anlegen" : "Wettkampftag bearbeiten"); //Titel für das Fenster
 		setResizable(false);                    //die Größe des Fensters kann nicht geändert werden
 
         //oberstes Layout
@@ -45,8 +50,8 @@ public class WTagView extends Stage {
         datumBox.getChildren().add(datumText);
         datumText.getStyleClass().add("Text-newWettkampftag"); //Aufrufname für die .css Datei
 
-        //DatePicker um das gewünschte Datum einzustellen
-        DatePicker datumPicker = new DatePicker(LocalDate.now());
+        //DatePicker um das gewünschte Datum einzustellen, beim Bearbeiten das vorhandene Datum vorbelegen
+        DatePicker datumPicker = new DatePicker(bearbeiten == null ? LocalDate.now() : bearbeiten.getDatum());
         datumPicker.setEditable(false);
         datumBox.getChildren().add(datumPicker);
 
@@ -65,6 +70,11 @@ public class WTagView extends Stage {
         vereinField.getStyleClass().add("TextField-newWettkampftag"); //Aufrufname für die .css Datei
         vereinBox.getChildren().add(vereinField);
 
+        //beim Bearbeiten den vorhandenen Ausrichterverein vorbelegen
+        if (bearbeiten != null) {
+            vereinField.setText(bearbeiten.getAusrichterVerein());
+        }
+
         //Hbox für Eingabereihe
         HBox saisonBox = new HBox();
         saisonBox.getStyleClass().add("Box-newWettkampftag"); //Aufrufname für die .css Datei
@@ -80,8 +90,11 @@ public class WTagView extends Stage {
         saisonCombo.getStyleClass().add("combo-newWettkampftag"); //Aufrufname für die .css Datei
         saisonCombo.setItems(FXCollections.observableArrayList(controller.alleSaisons()));
         saisonBox.getChildren().add(saisonCombo);
+
+        //beim Anlegen die übergebene Saison vorauswählen, beim Bearbeiten die Saison des Wettkampftages
+        String vorauswahlSaisonID = bearbeiten == null ? saisonAuswahl.getId() : bearbeiten.getSaisonID();
         for (Saison s : saisonCombo.getItems()) {
-            if (s.getId().equals(saisonAuswahl.getId())) {
+            if (s.getId().equals(vorauswahlSaisonID)) {
                 saisonCombo.getSelectionModel().select(s);
                 break;
             }
@@ -96,6 +109,25 @@ public class WTagView extends Stage {
         Button speichern = new Button("speichern");
         speichern.setOnAction(event -> {
 
+            //prüfen ob ein Datum eingegeben ist
+            if (datumPicker.getValue() == null) {
+                alert.errorAlert("bitte ein Datum auwsählen!");
+                return;
+            }
+
+            String saisonID = saisonCombo.getSelectionModel().getSelectedItem().getId();
+
+            if (bearbeiten == null) {
+                //Wettkampftag-Objekt erzeugen
+                Wettkampftage w = new Wettkampftage(datumPicker.getValue(), vereinField.getText(), saisonID);
+                controller.neuenWettkampftagSpeichern(w, saisonID);
+            } else {
+                //bestehenden Wettkampftag ändern, ID bleibt erhalten
+                bearbeiten.setDatum(datumPicker.getValue());
+                bearbeiten.setAusrichterVerein(vereinField.getText());
+                bearbeiten.setSaisonID(saisonID);
+                controller.wTagAktualisieren(bearbeiten, saisonID);
+            }
         });
 
         //Button zum abbrechen
