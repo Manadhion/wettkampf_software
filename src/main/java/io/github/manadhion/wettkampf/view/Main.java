@@ -1,11 +1,15 @@
 package io.github.manadhion.wettkampf.view;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -18,14 +22,18 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 import io.github.manadhion.wettkampf.app.Controller;
+import io.github.manadhion.wettkampf.app.DBController;
 import io.github.manadhion.wettkampf.data.Begegnung;
 import io.github.manadhion.wettkampf.data.Ergebnisse;
 import io.github.manadhion.wettkampf.data.Mannschaft;
@@ -61,10 +69,15 @@ public class Main extends Application {
     //start-Methode aus der App-Klasse(JavaFX)
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Blasrohr-Wettkampf-Manager");
-        
+
+        //beim ersten Start festlegen welche Datenbank verwendet wird
+        datenbankFestlegen(primaryStage);
+
         //Tabellen anlegen wenn sie noch nicht existieren
         controller.createTableIfNotExists();
+
+        //Fenstertitel zeigt die aktuell geöffnete Datenbank
+        titelAktualisieren(primaryStage);
 
         //Oberstes Layout
 		VBox top = new VBox();
@@ -73,7 +86,15 @@ public class Main extends Application {
 		//Menüleiste oben
 		MenuBar menuBar = new MenuBar();
 		Menu fileMenu = new Menu("Datei");              //Register Datei
+		MenuItem dbOeffnenItem = new MenuItem("Datenbank öffnen…"); //andere Datenbank laden
+		dbOeffnenItem.setOnAction(event -> {
+			datenbankWechseln(primaryStage);
+		});
 		MenuItem exitItem = new MenuItem("Beenden");    //Programm beenden Auswahl
+		exitItem.setOnAction(event -> {
+			Platform.exit();
+		});
+		fileMenu.getItems().add(dbOeffnenItem);
 		fileMenu.getItems().add(exitItem);
 		menuBar.getMenus().add(fileMenu);
 		top.getChildren().add(menuBar);
@@ -510,6 +531,83 @@ public class Main extends Application {
         primaryStage.setScene(scene);   //übernimmt Szene scene als Argument
 		primaryStage.show();            //öffnet das Fenster
 
+    }
+
+    //beim ersten Start festlegen welche Datenbank verwendet wird
+    private void datenbankFestlegen(Stage primaryStage) {
+
+        //ist schon eine Datenbank festgelegt, kann sie direkt weiterverwendet werden
+        if (DBController.hatDatenbank()) {
+            return;
+        }
+
+        //Auswahl ob eine neue Datenbank angelegt oder eine vorhandene geöffnet wird
+        ButtonType neuButton = new ButtonType("Neue Datenbank anlegen");
+        ButtonType oeffnenButton = new ButtonType("Vorhandene öffnen");
+        Alert auswahl = new Alert(AlertType.CONFIRMATION, "", neuButton, oeffnenButton);
+        auswahl.setTitle("Datenbank");
+        auswahl.setHeaderText("Womit möchten Sie arbeiten?");
+        Optional<ButtonType> wahl = auswahl.showAndWait();
+
+        if (wahl.isPresent() && wahl.get() == oeffnenButton) {
+            //vorhandene Datenbank auswählen und als aktive Datenbank merken
+            datenbankWaehlen(primaryStage, "Datenbank öffnen", null);
+        } else {
+            //neue, leere Datenbank an einem gewählten Ort anlegen
+            datenbankWaehlen(primaryStage, "Neue Datenbank anlegen", "wettkampf_db.db");
+        }
+
+        //wurde nichts ausgewählt (Dialog abgebrochen), die Standard-Datenbank im Benutzerordner verwenden
+        if (!DBController.hatDatenbank()) {
+            DBController.setDatenbankPfad(System.getProperty("user.home") + "/wettkampf_db.db");
+        }
+    }
+
+    //eine Datenbank-Datei auswählen und als aktive Datenbank merken, gibt zurück ob eine gewählt wurde
+    private boolean datenbankWaehlen(Stage primaryStage, String titel, String vorschlag) {
+        FileChooser dateiAuswahl = new FileChooser();
+        dateiAuswahl.setTitle(titel);
+        dateiAuswahl.getExtensionFilters().add(new FileChooser.ExtensionFilter("Datenbank-Dateien", "*.db"));
+
+        //für eine neue Datenbank einen Speichern-Dialog mit Namensvorschlag, sonst einen Öffnen-Dialog
+        File datei;
+        if (vorschlag == null) {
+            datei = dateiAuswahl.showOpenDialog(primaryStage);
+        } else {
+            dateiAuswahl.setInitialFileName(vorschlag);
+            datei = dateiAuswahl.showSaveDialog(primaryStage);
+        }
+
+        //ohne Auswahl bleibt alles unverändert
+        if (datei == null) {
+            return false;
+        }
+
+        DBController.setDatenbankPfad(datei.getAbsolutePath());
+        return true;
+    }
+
+    //zur Laufzeit eine andere Datenbank öffnen und die Anzeige darauf umstellen
+    private void datenbankWechseln(Stage primaryStage) {
+
+        //ohne Auswahl bleibt die aktuelle Datenbank bestehen
+        if (!datenbankWaehlen(primaryStage, "Datenbank öffnen", null)) {
+            return;
+        }
+
+        //fehlende Tabellen in der gewählten Datenbank anlegen
+        controller.createTableIfNotExists();
+
+        //Anzeige auf die neue Datenbank umstellen
+        saisonComboAktualisieren();
+        mannschaftComboAktualisieren();
+        titelAktualisieren(primaryStage);
+    }
+
+    //Fenstertitel auf die aktuell geöffnete Datenbank setzen
+    private void titelAktualisieren(Stage primaryStage) {
+        String dateiname = new File(DBController.getDatenbankPfad()).getName();
+        primaryStage.setTitle("Blasrohr-Wettkampf-Manager — " + dateiname);
     }
 
     //Ergebnisfeld je nach Auswahl füllen und sperren bzw. freigeben
