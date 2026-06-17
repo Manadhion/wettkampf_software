@@ -11,10 +11,14 @@ import java.util.List;
 import io.github.manadhion.wettkampf.app.DBController;
 import io.github.manadhion.wettkampf.data.Begegnung;
 
-//Data Access-Objekt, koordiniert arbeiten zwischen DB-Tabelle und App
+/**
+ * Data Access-Objekt für die Tabelle begegnung, koordiniert Arbeiten zwischen DB und App.
+ */
 public class BegegnungDAO {
-    
-    //neue Tabelle anlegen wenn sie noch nicht existiert
+
+    /**
+     * Legt die Tabelle begegnung an, falls sie noch nicht existiert.
+     */
     public void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS begegnung ("
                 + "id TEXT PRIMARY KEY,"
@@ -31,7 +35,10 @@ public class BegegnungDAO {
 	    }
     }
 
-    //neue Entität einfügen
+    /**
+     * Neue Begegnung in die Datenbank einfügen.
+     * @param begegnung einzufügende Begegnung
+     */
     public void insert(Begegnung begegnung) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
@@ -55,7 +62,11 @@ public class BegegnungDAO {
 		}
     }
 
-    //Begegnung löschen, falls falsch eingetragen oder ausgefallen
+    /**
+     * Begegnung löschen, falls falsch eingetragen oder ausgefallen.
+     * @param id id der zu löschenden Begegnung
+     * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
+     */
     public int delete(String id) {
         String sql = "DELETE FROM begegnung WHERE id=?;";
 
@@ -75,7 +86,11 @@ public class BegegnungDAO {
 		return erg;
     }
 
-    //alle Begegnungen eines bestimmten Tages auslesen
+    /**
+     * Alle Begegnungen eines bestimmten Tages auslesen.
+     * @param wettkampftag id des Wettkampftages
+     * @return Liste der Begegnungen an diesem Tag
+     */
     public List<Begegnung> begegnungenAnDiesemTag(String wettkampftag) {
         List<Begegnung> begegnungen = new ArrayList<>();
         

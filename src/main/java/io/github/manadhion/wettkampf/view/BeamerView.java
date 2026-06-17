@@ -41,7 +41,9 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
-//Vollbild-Anzeige für den Beamer, rotiert automatisch durch alle Ligen
+/**
+ * Vollbild-Anzeige für den Beamer, rotiert automatisch durch alle Ligen.
+ */
 public class BeamerView extends Stage {
 
     //Parameter
@@ -81,12 +83,18 @@ public class BeamerView extends Stage {
     //ob die Rotation gerade pausiert ist (Leertaste)
     private boolean pausiert = false;
 
-    //Controller von aussen setzen
+    /**
+     * Controller von außen setzen.
+     * @param controller der gemeinsame Controller
+     */
     public void setController(Controller controller) {
         this.controller = controller;
     }
 
-    //Beamer-Anzeige für einen Wettkampftag aufbauen und starten
+    /**
+     * Beamer-Anzeige für einen Wettkampftag aufbauen und starten.
+     * @param tag Wettkampftag, der auf dem Beamer angezeigt wird
+     */
     public void beamerStarten(Wettkampftage tag) {
 
         this.tag = tag;

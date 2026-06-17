@@ -2,6 +2,9 @@ package io.github.manadhion.wettkampf.data;
 
 import java.util.UUID;
 
+/**
+ * Entität einer Begegnung: Heim- gegen Auswärtsmannschaft an einem Wettkampftag.
+ */
 public class Begegnung {
 
     //Parameter
@@ -11,7 +14,12 @@ public class Begegnung {
     private String wettkampftag;    //Referenz zum Wettkampftag
 
 
-    //Konstruktor zum anlegen von neuen Begegnungen
+    /**
+     * Legt eine neue Begegnung mit frisch erzeugter id an.
+     * @param heim id der Heimmannschaft
+     * @param gegner id der Auswärtsmannschaft
+     * @param wettkampftag id des Wettkampftages, an dem die Begegnung stattfindet
+     */
     public Begegnung(String heim, String gegner, String wettkampftag) {
 
         this.heim = heim;
@@ -22,7 +30,13 @@ public class Begegnung {
         id = UUID.randomUUID().toString();
     }
 
-    //Konstruktor zum laden aus DB
+    /**
+     * Lädt eine bestehende Begegnung aus der Datenbank.
+     * @param id vorhandene id der Begegnung
+     * @param heim id der Heimmannschaft
+     * @param gegner id der Auswärtsmannschaft
+     * @param wettkampftag id des Wettkampftages, an dem die Begegnung stattfindet
+     */
     public Begegnung(String id, String heim, String gegner, String wettkampftag) {
 
         this.id = id;

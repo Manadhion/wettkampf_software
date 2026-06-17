@@ -10,10 +10,15 @@ import java.util.List;
 
 import io.github.manadhion.wettkampf.app.DBController;
 import io.github.manadhion.wettkampf.data.Altersklasse;
-//Data Access-Objekt, koordiniert arbeiten zwischen DB-Tabelle und App
+
+/**
+ * Data Access-Objekt für die Tabelle altersklasse, koordiniert Arbeiten zwischen DB und App.
+ */
 public class AltersklasseDAO {
-    
-    //neue Tabelle anlegen wenn sie noch nicht existiert
+
+    /**
+     * Legt die Tabelle altersklasse an, falls sie noch nicht existiert.
+     */
     public void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS altersklasse ("
                 + "id TEXT PRIMARY KEY,"
@@ -28,7 +33,10 @@ public class AltersklasseDAO {
 	    }
     }
 
-    //neue Entität einfügen
+    /**
+     * Neue Altersklasse in die Datenbank einfügen.
+     * @param alter einzufügende Altersklasse
+     */
     public void insert(Altersklasse alter) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
@@ -50,7 +58,10 @@ public class AltersklasseDAO {
 		}
     }
 
-    //bestehende Altersklasse ändern
+    /**
+     * Bestehende Altersklasse ändern.
+     * @param alter Altersklasse mit den geänderten Werten
+     */
     public void update(Altersklasse alter) {
 
         String sql = "UPDATE altersklasse SET name=? WHERE id=?";
@@ -70,7 +81,10 @@ public class AltersklasseDAO {
 		}
     }
 
-    //Liste mit allen Altersklassen
+    /**
+     * Alle Altersklassen holen.
+     * @return Liste aller Altersklassen
+     */
     public List<Altersklasse> alleAltersklassen() {
         List<Altersklasse> aKlassen = new ArrayList<>();
 
@@ -95,7 +109,11 @@ public class AltersklasseDAO {
         return aKlassen;
     }
 
-    //Altersklasse löschen, falls falsch eingetragen oder ausgefallen
+    /**
+     * Altersklasse löschen, falls falsch eingetragen oder ausgefallen.
+     * @param id id der zu löschenden Altersklasse
+     * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
+     */
     public int delete(String id) {
         String sql = "DELETE FROM altersklasse WHERE id=?;";
 

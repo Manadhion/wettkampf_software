@@ -13,6 +13,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+/**
+ * Fenster zum Anlegen einer neuen Begegnung.
+ */
 public class BegegnungView extends Stage {
 
     //Parameter
@@ -20,12 +23,19 @@ public class BegegnungView extends Stage {
 
     //Objekt der eigenen Alert-Klasse
     OwnAlert alert = new OwnAlert();
-    
-    //Controller von aussen setzen (kommt aus Main, kennt viewMain)
+
+    /**
+     * Controller von außen setzen (kommt aus Main, kennt viewMain).
+     * @param controller der gemeinsame Controller
+     */
     public void setController(Controller controller) {
         this.controller = controller;
     }
 
+    /**
+     * Formular zum Anlegen einer neuen Begegnung aufbauen.
+     * @param tagID id des Wettkampftages, zu dem die Begegnung gehört
+     */
     public void newBegegnung(String tagID)  {
 
         setTitle("Neue Begegnung anlegen"); //Titel für das Fenster

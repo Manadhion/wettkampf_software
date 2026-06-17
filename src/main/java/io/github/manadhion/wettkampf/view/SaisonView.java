@@ -12,18 +12,26 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
+/**
+ * Fenster zum Anlegen und Bearbeiten einer Saison.
+ */
 public class SaisonView extends Stage {
 
     //Parameter
     private Controller controller;
     private int saisonName;
 
-    //Controller von aussen setzen (kommt aus Main, kennt viewMain)
+    /**
+     * Controller von außen setzen (kommt aus Main, kennt viewMain).
+     * @param controller der gemeinsame Controller
+     */
     public void setController(Controller controller) {
         this.controller = controller;
     }
 
-    //Alarmfenster wenn keine Zahlen eingetragen wurden
+    /**
+     * Alarmfenster wenn keine Zahlen eingetragen wurden.
+     */
 	public void intAlert () {
 		Alert intAlert = new Alert(AlertType.ERROR);
 		intAlert.setTitle("Fehler!");
@@ -31,7 +39,10 @@ public class SaisonView extends Stage {
 		intAlert.showAndWait();
 	}
 
-    //Alarm wenn die eingegebene Zahlenmenge nicht richtig ist
+    /**
+     * Alarm wenn die eingegebene Zahlenmenge nicht richtig ist.
+     * @param text anzuzeigender Fehlertext
+     */
 	public void valueAlert(String text) {
 		Alert eqAlert = new Alert(AlertType.ERROR);
 		eqAlert.setTitle("Fehler!");
@@ -39,7 +50,10 @@ public class SaisonView extends Stage {
 		eqAlert.showAndWait();
 	}
 
-    //Formular zum Anlegen (bearbeiten == null) oder Bearbeiten (bearbeiten != null) einer Saison
+    /**
+     * Formular zum Anlegen oder Bearbeiten einer Saison aufbauen.
+     * @param bearbeiten zu bearbeitende Saison, oder null zum Anlegen einer neuen Saison
+     */
     public void saisonFormular(Saison bearbeiten){
 
         setTitle(bearbeiten == null ? "Neue Saison anlegen" : "Saison bearbeiten"); //Titel für das Fenster

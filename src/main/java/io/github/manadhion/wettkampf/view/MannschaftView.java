@@ -16,6 +16,9 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Fenster zum Anlegen und Bearbeiten einer Mannschaft.
+ */
 public class MannschaftView extends Stage {
 
     //Parameter
@@ -24,13 +27,19 @@ public class MannschaftView extends Stage {
 
     //Objekt der eigenen Alert-Klasse
     OwnAlert alert = new OwnAlert();
-    
-    //Controller von aussen setzen (kommt aus Main, kennt viewMain)
+
+    /**
+     * Controller von außen setzen (kommt aus Main, kennt viewMain).
+     * @param controller der gemeinsame Controller
+     */
     public void setController(Controller controller) {
         this.controller = controller;
     }
 
-    //Formular zum Anlegen (bearbeiten == null) oder Bearbeiten (bearbeiten != null) einer Mannschaft
+    /**
+     * Formular zum Anlegen oder Bearbeiten einer Mannschaft aufbauen.
+     * @param bearbeiten zu bearbeitende Mannschaft, oder null zum Anlegen einer neuen
+     */
     public void mannschaftFormular(Mannschaft bearbeiten) {
 
         setTitle(bearbeiten == null ? "Neue Mannschaft anlegen" : "Mannschaft bearbeiten"); //Titel für das Fenster
@@ -179,7 +188,9 @@ public class MannschaftView extends Stage {
 
     }
 
-    //ComboBox für Liga neu aus der DB laden
+    /**
+     * Liga-ComboBox neu aus der Datenbank laden.
+     */
     public void ligaComboAktualisieren() {
         ligaCombo.setItems(FXCollections.observableArrayList(controller.alleLigen()));
     }

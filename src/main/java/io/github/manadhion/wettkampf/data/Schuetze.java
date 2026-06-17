@@ -2,7 +2,9 @@ package io.github.manadhion.wettkampf.data;
 
 import java.util.UUID;
 
-//DB-Entitäten-Objekt
+/**
+ * Entität eines Schützen, gehört einer Mannschaft und einer Altersklasse an.
+ */
 public class Schuetze {
 
     //Parameter
@@ -12,7 +14,13 @@ public class Schuetze {
     private String mannschaftid;    //Referenz zur Mannschaft
     private String altersKlasse;       //Altersklasse z.B. Jugend, Herren usw.
 
-    //Konstruktor für neue Schützen
+    /**
+     * Legt einen neuen Schützen mit frisch erzeugter id an.
+     * @param vorname Vorname des Schützen
+     * @param nachname Nachname des Schützen
+     * @param mannschaftid id der Mannschaft, der der Schütze angehört
+     * @param altersKlasse Altersklasse des Schützen, z.B. Jugend, Herren
+     */
     public Schuetze(String vorname, String nachname, String mannschaftid, String altersKlasse) {
         this.vorname = vorname;
         this.nachname = nachname;
@@ -23,7 +31,14 @@ public class Schuetze {
         id = UUID.randomUUID().toString();
     }
 
-        //Konstruktor um Schützen aus DB zu laden
+    /**
+     * Lädt einen bestehenden Schützen aus der Datenbank.
+     * @param id vorhandene id des Schützen
+     * @param vorname Vorname des Schützen
+     * @param nachname Nachname des Schützen
+     * @param mannschaftid id der Mannschaft, der der Schütze angehört
+     * @param altersKlasse Altersklasse des Schützen, z.B. Jugend, Herren
+     */
     public Schuetze(String id, String vorname, String nachname, String mannschaftid, String altersKlasse) {
         this.id = id;
         this.vorname = vorname;
@@ -68,7 +83,10 @@ public class Schuetze {
         return id;
     }
 
-    //Anzeigetext für die ComboBox, sonst würde dort Schuetze@123abc stehen
+    /**
+     * Anzeigetext für die ComboBox, sonst würde dort Schuetze@123abc stehen.
+     * @return Vorname und Nachname des Schützen
+     */
     @Override
     public String toString() {
         return vorname + " " + nachname;

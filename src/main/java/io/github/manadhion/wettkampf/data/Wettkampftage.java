@@ -3,6 +3,9 @@ package io.github.manadhion.wettkampf.data;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * Entität eines Wettkampftages: Datum, ausrichtender Verein und zugehörige Saison.
+ */
 public class Wettkampftage {
 
     //Parameter
@@ -11,7 +14,12 @@ public class Wettkampftage {
     private String ausrichterVerein;    //Der VErein bei dem der Wettkampf an diesem Tag stattfindet
     private String saisonID; // Referenz auf die Saison
 
-    //Konstruktor für neue Tage
+    /**
+     * Legt einen neuen Wettkampftag mit frisch erzeugter id an.
+     * @param datum Datum, an dem der Wettkampf stattfindet
+     * @param ausrichterverein Verein, der den Wettkampftag ausrichtet
+     * @param saisonID id der Saison, zu der der Tag gehört
+     */
     public Wettkampftage(LocalDate datum, String ausrichterverein, String saisonID) {
         this.datum = datum;
         this.ausrichterVerein = ausrichterverein;
@@ -21,7 +29,13 @@ public class Wettkampftage {
         id = UUID.randomUUID().toString();
     }
 
-    //Konstruktor zum laden aus DB
+    /**
+     * Lädt einen bestehenden Wettkampftag aus der Datenbank.
+     * @param id vorhandene id des Wettkampftages
+     * @param datum Datum, an dem der Wettkampf stattfindet
+     * @param ausrichterverein Verein, der den Wettkampftag ausrichtet
+     * @param saisonID id der Saison, zu der der Tag gehört
+     */
     public Wettkampftage(String id, LocalDate datum, String ausrichterverein, String saisonID) {
         this.id = id;
         this.datum = datum;

@@ -8,10 +8,14 @@ import java.sql.Statement;
 import io.github.manadhion.wettkampf.app.DBController;
 import io.github.manadhion.wettkampf.data.Ergebnisse;
 
-//Data Access-Objekt, koordiniert arbeiten zwischen DB-Tabelle und App
+/**
+ * Data Access-Objekt für die Tabelle ergebnisse, koordiniert Arbeiten zwischen DB und App.
+ */
 public class ErgebnisseDAO {
 
-    //neue Tabelle anlegen wenn sie noch nicht existiert
+    /**
+     * Legt die Tabelle ergebnisse an, falls sie noch nicht existiert.
+     */
     public void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS ergebnisse ("
                 + "id TEXT PRIMARY KEY,"
@@ -28,7 +32,10 @@ public class ErgebnisseDAO {
 	    }
     }
 
-    //neue Entität einfügen
+    /**
+     * Neues Ergebnis in die Datenbank einfügen.
+     * @param ergebnisse einzufügendes Ergebnis
+     */
     public void insert(Ergebnisse ergebnisse) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
@@ -53,7 +60,12 @@ public class ErgebnisseDAO {
 
     }
 
-    //Ergebnis eines Schützen an einem bestimmten Wettkampftag holen, oder null wenn es noch keins gibt
+    /**
+     * Ergebnis eines Schützen an einem bestimmten Wettkampftag holen.
+     * @param schuetzeID id des Schützen
+     * @param wettkampftagID id des Wettkampftages
+     * @return gefundenes Ergebnis, oder null wenn es noch keins gibt
+     */
     public Ergebnisse ergebnisFuerSchuetzeUndTag(String schuetzeID, String wettkampftagID) {
 
         Ergebnisse ergebnis = null;
@@ -81,7 +93,12 @@ public class ErgebnisseDAO {
         return ergebnis;
     }
 
-    //Gesamtergebnis einer Mannschaft an einem Tag = Summe der besten 3 Schützen-Ergebnisse
+    /**
+     * Gesamtergebnis einer Mannschaft an einem Tag = Summe der besten 3 Schützen-Ergebnisse.
+     * @param mannschaftID id der Mannschaft
+     * @param wettkampftagID id des Wettkampftages
+     * @return Summe der besten 3 Ergebnisse, 0 wenn noch keine Ergebnisse vorliegen
+     */
     public int gesamtErgebnisBeste3(String mannschaftID, String wettkampftagID) {
 
         int gesamt = 0;
@@ -114,7 +131,10 @@ public class ErgebnisseDAO {
         return gesamt;
     }
 
-    //bestehendes Ergebnis ändern
+    /**
+     * Bestehendes Ergebnis ändern.
+     * @param ergebnisse Ergebnis mit dem geänderten Wert
+     */
     public void update(Ergebnisse ergebnisse) {
 
         String sql = "UPDATE ergebnisse SET ergebnis=? WHERE id=?";

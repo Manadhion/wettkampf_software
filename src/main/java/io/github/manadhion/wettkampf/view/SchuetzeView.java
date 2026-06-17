@@ -17,6 +17,9 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Fenster zum Anlegen und Bearbeiten eines Schützen.
+ */
 public class SchuetzeView extends Stage {
 
     //Parameter
@@ -25,13 +28,20 @@ public class SchuetzeView extends Stage {
 
     //Objekt der eigenen Alert-Klasse
     OwnAlert alert = new OwnAlert();
-    
-    //Controller von aussen setzen (kommt aus Main, kennt viewMain)
+
+    /**
+     * Controller von außen setzen (kommt aus Main, kennt viewMain).
+     * @param controller der gemeinsame Controller
+     */
     public void setController(Controller controller) {
         this.controller = controller;
     }
 
-    //Formular zum Anlegen (bearbeiten == null) oder Bearbeiten (bearbeiten != null) eines Schützen
+    /**
+     * Formular zum Anlegen oder Bearbeiten eines Schützen aufbauen.
+     * @param mAuswahl beim Anlegen vorauszuwählende Mannschaft
+     * @param bearbeiten zu bearbeitender Schütze, oder null zum Anlegen eines neuen
+     */
     public void schuetzeFormular(Mannschaft mAuswahl, Schuetze bearbeiten) {
 
         setTitle(bearbeiten == null ? "Neuen Schützen anlegen" : "Schützen bearbeiten"); //Titel für das Fenster
@@ -227,7 +237,9 @@ public class SchuetzeView extends Stage {
     }
 
 
-    //ComboBox für Altersklasse neu aus der DB laden
+    /**
+     * Altersklasse-ComboBox neu aus der Datenbank laden.
+     */
     public void alterComboAktualisieren() {
         alterCombo.setItems(FXCollections.observableArrayList(controller.alleAltersklassen()));
     }

@@ -16,6 +16,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+/**
+ * Fenster zum Anlegen und Bearbeiten eines Wettkampftages.
+ */
 public class WTagView extends Stage {
 
     //Parameter
@@ -23,13 +26,20 @@ public class WTagView extends Stage {
 
     //Objekt der eigenen Alert-Klasse
     OwnAlert alert = new OwnAlert();
-    
-    //Controller von aussen setzen (kommt aus Main, kennt viewMain)
+
+    /**
+     * Controller von außen setzen (kommt aus Main, kennt viewMain).
+     * @param controller der gemeinsame Controller
+     */
     public void setController(Controller controller) {
         this.controller = controller;
     }
 
-    //Formular zum Anlegen (bearbeiten == null) oder Bearbeiten (bearbeiten != null) eines Wettkampftages
+    /**
+     * Formular zum Anlegen oder Bearbeiten eines Wettkampftages aufbauen.
+     * @param saisonAuswahl beim Anlegen vorauszuwählende Saison
+     * @param bearbeiten zu bearbeitender Wettkampftag, oder null zum Anlegen eines neuen
+     */
     public void wTagFormular(Saison saisonAuswahl, Wettkampftage bearbeiten) {
 
         setTitle(bearbeiten == null ? "Neuen Wettkampftag anlegen" : "Wettkampftag bearbeiten"); //Titel für das Fenster

@@ -11,10 +11,14 @@ import java.util.List;
 import io.github.manadhion.wettkampf.app.DBController;
 import io.github.manadhion.wettkampf.data.Saison;
 
-//Data Access-Objekt, koordiniert arbeiten zwischen DB-Tabelle und App
+/**
+ * Data Access-Objekt für die Tabelle saison, koordiniert Arbeiten zwischen DB und App.
+ */
 public class SaisonDAO {
 
-    //neue Tabelle anlegen wenn sie noch nicht existiert
+    /**
+     * Legt die Tabelle saison an, falls sie noch nicht existiert.
+     */
     public void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS saison ("
                 + "id TEXT PRIMARY KEY,"
@@ -29,7 +33,10 @@ public class SaisonDAO {
 	    }
     }
 
-    //neue Entität einfügen
+    /**
+     * Neue Saison in die Datenbank einfügen.
+     * @param saison einzufügende Saison
+     */
     public void insert(Saison saison) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
@@ -52,7 +59,10 @@ public class SaisonDAO {
 
     }
 
-    //bestehende Saison ändern
+    /**
+     * Bestehende Saison ändern.
+     * @param saison Saison mit den geänderten Werten
+     */
     public void update(Saison saison) {
 
         String sql = "UPDATE saison SET name=? WHERE id=?";
@@ -72,7 +82,10 @@ public class SaisonDAO {
         }
     }
 
-    //alle Saisons abfragen
+    /**
+     * Alle Saisons absteigend nach Name holen.
+     * @return Liste aller Saisons
+     */
     public List<Saison> alleSaisons() {
         List<Saison> saison = new ArrayList<>();
 
@@ -97,7 +110,11 @@ public class SaisonDAO {
         return saison;
     }
 
-    //Saison mit einer bestimmten ID finden, oder null wenn es keine gibt
+    /**
+     * Saison mit einer bestimmten id finden.
+     * @param id id der gesuchten Saison
+     * @return gefundene Saison, oder null wenn es keine gibt
+     */
     public Saison saisonMitId(String id) {
         Saison saison = null;
 
@@ -120,7 +137,11 @@ public class SaisonDAO {
         return saison;
     }
 
-    //Saison löschen, falls falsch eingetragen oder ausgefallen
+    /**
+     * Saison löschen, falls falsch eingetragen oder ausgefallen.
+     * @param id id der zu löschenden Saison
+     * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
+     */
     public int delete(String id) {
         String sql = "DELETE FROM saison WHERE id=?;";
 
@@ -140,7 +161,11 @@ public class SaisonDAO {
 		return erg;
     }
 
-    //prüfen ob es eine Saison mit diesem Namen schon gibt
+    /**
+     * Prüfen ob es eine Saison mit diesem Namen schon gibt.
+     * @param name Spieljahr als Zahl, z.B. 2526 für 25/26
+     * @return true wenn bereits eine Saison mit diesem Namen existiert
+     */
     public boolean existiert(int name) {
         String sql = "SELECT 1 FROM saison WHERE name = ?";
         try (Connection con = DBController.getConnection();

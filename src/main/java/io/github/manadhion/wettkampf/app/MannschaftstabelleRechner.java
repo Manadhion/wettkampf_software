@@ -13,17 +13,28 @@ import io.github.manadhion.wettkampf.data.Mannschaft;
 import io.github.manadhion.wettkampf.data.TabellenZeile;
 import io.github.manadhion.wettkampf.data.Wettkampftage;
 
-//berechnet die Mannschaftstabelle einer Liga aus allen Begegnungen einer Saison
+/**
+ * Berechnet die Mannschaftstabelle einer Liga aus allen Begegnungen einer Saison.
+ */
 public class MannschaftstabelleRechner {
 
     //holt die Daten über den Controller (Wettkampftage, Begegnungen, Gesamtergebnisse)
     private Controller controller;
 
+    /**
+     * Legt den Rechner an.
+     * @param controller Controller, über den die benötigten Daten geholt werden
+     */
     public MannschaftstabelleRechner(Controller controller) {
         this.controller = controller;
     }
 
-    //Tabelle einer Liga über alle Wettkampftage der Saison berechnen, absteigend sortiert
+    /**
+     * Tabelle einer Liga über alle Wettkampftage der Saison berechnen, absteigend sortiert.
+     * @param liga Liga, deren Tabelle berechnet wird
+     * @param saisonID id der Saison, über die gerechnet wird
+     * @return Tabellenzeilen, sortiert nach Begegnungspunkten und bei Gleichstand nach Ringen
+     */
     public List<TabellenZeile> berechne(Liga liga, String saisonID) {
 
         //Mannschafts-ID -> Tabellenzeile, mit allen Mannschaften der Liga vorbelegt (so stehen auch Mannschaften ohne Begegnung drin)

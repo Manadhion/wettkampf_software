@@ -10,6 +10,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+/**
+ * Fenster zum Anlegen und Bearbeiten einer Altersklasse.
+ */
 public class AltersklasseView extends Stage {
 
     //Parameter
@@ -17,13 +20,19 @@ public class AltersklasseView extends Stage {
 
     //Objekt der eigenen Alert-Klasse
     OwnAlert alert = new OwnAlert();
-    
-    //Controller von aussen setzen (kommt aus Main, kennt viewMain)
+
+    /**
+     * Controller von außen setzen (kommt aus Main, kennt viewMain).
+     * @param controller der gemeinsame Controller
+     */
     public void setController(Controller controller) {
         this.controller = controller;
     }
 
-    //Formular zum Anlegen (bearbeiten == null) oder Bearbeiten (bearbeiten != null) einer Altersklasse
+    /**
+     * Formular zum Anlegen oder Bearbeiten einer Altersklasse aufbauen.
+     * @param bearbeiten zu bearbeitende Altersklasse, oder null zum Anlegen einer neuen
+     */
     public void alterFormular(Altersklasse bearbeiten) {
 
         setTitle(bearbeiten == null ? "Neue Altersklasse anlegen" : "Altersklasse bearbeiten"); //Titel für das Fenster

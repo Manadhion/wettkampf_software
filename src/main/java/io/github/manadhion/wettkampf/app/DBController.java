@@ -5,7 +5,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.prefs.Preferences;
 
-//Objekt um eine Verbindung zur Datenbank aufzubauen
+/**
+ * Baut Verbindungen zur SQLite-Datenbank auf und verwaltet den dauerhaft gespeicherten Pfad zur aktiven Datenbank.
+ */
 public class DBController {
 
     //Schlüssel unter dem der Pfad zur aktiven Datenbank dauerhaft gespeichert wird
@@ -16,22 +18,35 @@ public class DBController {
 
     private DBController() {} //es kann keine Instanz erstellt werden - private
 
-    //Methode die vom private DBController aus anderen Klassen aufgerufen werden kann
+    /**
+     * Verbindung zur aktiven Datenbank aufbauen.
+     * @return offene Verbindung zur SQLite-Datenbank
+     * @throws SQLException wenn die Verbindung nicht aufgebaut werden kann
+     */
     public static Connection getConnection() throws SQLException{
     	return DriverManager.getConnection("jdbc:sqlite:" + getDatenbankPfad());
     }
 
-    //gibt zurück ob schon eine Datenbank festgelegt wurde
+    /**
+     * Gibt zurück ob schon eine Datenbank festgelegt wurde.
+     * @return true wenn ein Pfad zur Datenbank gespeichert ist
+     */
     public static boolean hatDatenbank() {
         return EINSTELLUNGEN.get(PFAD_SCHLUESSEL, null) != null;
     }
 
-    //den gespeicherten Pfad zur aktiven Datenbank holen
+    /**
+     * Den gespeicherten Pfad zur aktiven Datenbank holen.
+     * @return Pfad zur Datenbank, oder null wenn keiner festgelegt ist
+     */
     public static String getDatenbankPfad() {
         return EINSTELLUNGEN.get(PFAD_SCHLUESSEL, null);
     }
 
-    //den Pfad zur aktiven Datenbank dauerhaft festlegen
+    /**
+     * Den Pfad zur aktiven Datenbank dauerhaft festlegen.
+     * @param pfad Pfad zur Datenbank-Datei
+     */
     public static void setDatenbankPfad(String pfad) {
         EINSTELLUNGEN.put(PFAD_SCHLUESSEL, pfad);
     }

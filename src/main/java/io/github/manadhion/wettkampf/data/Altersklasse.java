@@ -2,12 +2,18 @@ package io.github.manadhion.wettkampf.data;
 
 import java.util.UUID;
 
+/**
+ * Entität einer Altersklasse, z.B. Herren oder Jugend, der Schützen zugeordnet werden.
+ */
 public class Altersklasse {
 
     private String id;
     private String klassenName; //z.B. Herren, Jugend usw.
 
-    //Konstruktor zum neu Anlegen
+    /**
+     * Legt eine neue Altersklasse mit frisch erzeugter id an.
+     * @param klassenName Name der Altersklasse, z.B. Herren, Jugend
+     */
     public Altersklasse(String klassenName) {
 
         this.klassenName = klassenName;
@@ -16,7 +22,11 @@ public class Altersklasse {
         id = UUID.randomUUID().toString();
     }
 
-    //Konstruktor zum laden aus DB
+    /**
+     * Lädt eine bestehende Altersklasse aus der Datenbank.
+     * @param id vorhandene id der Altersklasse
+     * @param klassenName Name der Altersklasse, z.B. Herren, Jugend
+     */
     public Altersklasse(String id, String klassenName) {
 
         this.id = id;
@@ -35,7 +45,10 @@ public class Altersklasse {
         return id;
     }
     
-    //Anzeigetext für die ComboBox
+    /**
+     * Anzeigetext für die ComboBox.
+     * @return Name der Altersklasse
+     */
     @Override
     public String toString() {
         return klassenName;

@@ -1,0 +1,17 @@
+# Build-Ausgabe von Maven
+target/
+
+# SQLite-Datenbankdateien
+*.db
+
+# IDE- und Editor-Dateien
+.vscode/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# Betriebssystem
+Thumbs.db
+.DS_Store

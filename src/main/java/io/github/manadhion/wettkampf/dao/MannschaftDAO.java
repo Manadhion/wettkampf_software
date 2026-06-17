@@ -11,10 +11,14 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-//Data Access-Objekt, koordiniert arbeiten zwischen DB-Tabelle und App
+/**
+ * Data Access-Objekt für die Tabelle mannschaft, koordiniert Arbeiten zwischen DB und App.
+ */
 public class MannschaftDAO {
-    
-    //neue Tabelle anlegen wenn sie noch nicht existiert
+
+    /**
+     * Legt die Tabelle mannschaft an, falls sie noch nicht existiert.
+     */
     public void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS mannschaft ("
                 + "id TEXT PRIMARY KEY,"
@@ -31,7 +35,10 @@ public class MannschaftDAO {
     }
 
 
-    //neue Entität einfügen
+    /**
+     * Neue Mannschaft in die Datenbank einfügen.
+     * @param mannschaft einzufügende Mannschaft
+     */
     public void insert(Mannschaft mannschaft) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
@@ -55,7 +62,10 @@ public class MannschaftDAO {
 
     }
 
-    //bestehende Mannschaft ändern
+    /**
+     * Bestehende Mannschaft ändern.
+     * @param mannschaft Mannschaft mit den geänderten Werten
+     */
     public void update(Mannschaft mannschaft) {
 
         String sql = "UPDATE mannschaft SET name=?, klasse=? WHERE id=?";
@@ -77,7 +87,10 @@ public class MannschaftDAO {
 
     }
 
-    //Liste mit allen Mannschaften
+    /**
+     * Alle Mannschaften holen, inklusive Liganame per JOIN für die Anzeige.
+     * @return Liste aller Mannschaften
+     */
     public List<Mannschaft> alleMannschaften() {
 
         List<Mannschaft> mannschaften = new ArrayList<>();
@@ -106,7 +119,11 @@ public class MannschaftDAO {
 
     }
 
-    //Mannschaft durch ID finden, oder null wenn es keine gibt
+    /**
+     * Mannschaft durch id finden, inklusive Liganame per JOIN für die Anzeige.
+     * @param mID id der gesuchten Mannschaft
+     * @return gefundene Mannschaft, oder null wenn es keine gibt
+     */
     public Mannschaft mannschaftMitID(String mID) {
 
         Mannschaft m = null;
@@ -137,7 +154,11 @@ public class MannschaftDAO {
         return null;
     }
 
-    //Mannschaft löschen, falls falsch eingetragen oder ausgefallen
+    /**
+     * Mannschaft löschen, falls falsch eingetragen oder ausgefallen.
+     * @param id id der zu löschenden Mannschaft
+     * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
+     */
     public int delete(String id) {
         String sql = "DELETE FROM mannschaft WHERE id=?;";
 

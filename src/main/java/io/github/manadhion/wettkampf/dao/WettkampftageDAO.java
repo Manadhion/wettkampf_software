@@ -12,10 +12,14 @@ import java.util.List;
 import io.github.manadhion.wettkampf.app.DBController;
 import io.github.manadhion.wettkampf.data.Wettkampftage;
 
-//Data Access-Objekt, koordiniert arbeiten zwischen DB-Tabelle und App
+/**
+ * Data Access-Objekt für die Tabelle wettkampftage, koordiniert Arbeiten zwischen DB und App.
+ */
 public class WettkampftageDAO {
-    
-    //neue Tabelle anlegen wenn sie noch nicht existiert
+
+    /**
+     * Legt die Tabelle wettkampftage an, falls sie noch nicht existiert.
+     */
     public void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS wettkampftage ("
                 + "id TEXT PRIMARY KEY,"
@@ -32,7 +36,10 @@ public class WettkampftageDAO {
 	    }
     }
 
-    //neue Entität einfügen
+    /**
+     * Neuen Wettkampftag in die Datenbank einfügen.
+     * @param wettkampftage einzufügender Wettkampftag
+     */
     public void insert(Wettkampftage wettkampftage) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
@@ -57,7 +64,10 @@ public class WettkampftageDAO {
 
     }
 
-    //bestehenden Wettkampftag ändern
+    /**
+     * Bestehenden Wettkampftag ändern.
+     * @param wettkampftage Wettkampftag mit den geänderten Werten
+     */
     public void update(Wettkampftage wettkampftage) {
 
         String sql = "UPDATE wettkampftage SET datum=?, ausrichterverein=?, saisonID=? WHERE id=?";
@@ -80,7 +90,10 @@ public class WettkampftageDAO {
 
     }
 
-    //Liste mit allen Wettkampftagen
+    /**
+     * Alle Wettkampftage holen.
+     * @return Liste aller Wettkampftage
+     */
     public List<Wettkampftage> alleTage() {
         List<Wettkampftage> wettkampftage = new ArrayList<>();
 
@@ -105,7 +118,11 @@ public class WettkampftageDAO {
         return wettkampftage;
     }
 
-    //Liste mit allen Wettkampftagen einer bestimmten Saison
+    /**
+     * Alle Wettkampftage einer bestimmten Saison holen.
+     * @param saisonID id der Saison
+     * @return Liste der Wettkampftage dieser Saison
+     */
     public List<Wettkampftage> tageVonSaison(String saisonID) {
         List<Wettkampftage> wettkampftage = new ArrayList<>();
 
@@ -132,7 +149,11 @@ public class WettkampftageDAO {
         return wettkampftage;
     }
 
-    //Wettkampftag löschen, falls falsch eingetragen oder ausgefallen
+    /**
+     * Wettkampftag löschen, falls falsch eingetragen oder ausgefallen.
+     * @param id id des zu löschenden Wettkampftages
+     * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
+     */
     public int delete(String id) {
         String sql = "DELETE FROM wettkampftage WHERE id=?;";
 

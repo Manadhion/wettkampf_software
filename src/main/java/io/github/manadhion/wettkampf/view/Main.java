@@ -41,6 +41,9 @@ import io.github.manadhion.wettkampf.data.Saison;
 import io.github.manadhion.wettkampf.data.Schuetze;
 import io.github.manadhion.wettkampf.data.Wettkampftage;
 
+/**
+ * Hauptfenster und Einstiegspunkt der Anwendung, zeigt Saison, Wettkampftage, Mannschaften, Schützen und Begegnungen.
+ */
 public class Main extends Application {
 
     //Formatter für die deutsche Datumsanzeige
@@ -49,7 +52,7 @@ public class Main extends Application {
     //Controller-Objekt erzeugen
     private Controller controller = new Controller(this);
 
-    //GUI-Elemente als Felder, damit auch die Methoden außerhalb von start() sie sehen
+    //GUI-Elemente als Felder, damit auch die Methoden außerhalb von start  sie sehen
     private ComboBox<Saison> saisonCombo;
     private ComboBox<Wettkampftage> wTageBox;
     private ComboBox<Schuetze> schuetzeCombo;
@@ -61,12 +64,18 @@ public class Main extends Application {
     private Button begegnungButton;
     private Button beamerButton = new Button("Beamer-Anzeige starten");
 
-    //Einstiegspunkt, erzeugt eine Instanz und startet die Methode start aus der App-Klasse
+    /**
+     * Einstiegspunkt, erzeugt eine Instanz und startet die Methode start aus der App-Klasse.
+     * @param args Kommandozeilenargumente
+     */
     public static void main(String[] args) {
         launch(args);
     }
 
-    //start-Methode aus der App-Klasse(JavaFX)
+    /**
+     * Baut das Hauptfenster auf und zeigt es an (start-Methode aus der App-Klasse von JavaFX).
+     * @param primaryStage von JavaFX bereitgestelltes Hauptfenster
+     */
     @Override
     public void start(Stage primaryStage) {
 
@@ -667,7 +676,9 @@ public class Main extends Application {
         }
     }
 
-    //Begegnungen in tagAnzeige anzeigen
+    /**
+     * Begegnungen des aktuell gewählten Wettkampftages in tagAnzeige anzeigen.
+     */
     public void begegnungenAnzeigen() {
 
         //Inhalt vor dem neu-Aufbau löschen
@@ -733,22 +744,32 @@ public class Main extends Application {
 
     }
 
-    //ComboBox für Saison neu aus der DB laden
+    /**
+     * Saison-ComboBox neu aus der Datenbank laden.
+     */
     public void saisonComboAktualisieren() {
         saisonCombo.setItems(FXCollections.observableArrayList(controller.alleSaisons()));
     }
 
-    //ComboBox für Wettkampftag neu aus der DB laden
+    /**
+     * Wettkampftag-ComboBox neu aus der Datenbank laden.
+     * @param id id der Saison, deren Wettkampftage geladen werden
+     */
     public void wTagComboAktualisieren(String id) {
         wTageBox.setItems(FXCollections.observableArrayList(controller.wettkampftageVonSaison(id)));
     }
 
-    //ComboBox für Mannschaft neu aus der DB laden
+    /**
+     * Mannschaft-ComboBox neu aus der Datenbank laden.
+     */
     public void mannschaftComboAktualisieren() {
         mannschaftCombo.setItems(FXCollections.observableArrayList(controller.alleMannschaften()));
     }
 
-    //ComboBox für Schützen neu aus der DB laden
+    /**
+     * Schützen-ComboBox neu aus der Datenbank laden.
+     * @param id id der Mannschaft, deren Schützen geladen werden
+     */
     public void schuetzeComboAktualisieren(String id) {
         schuetzeCombo.setItems(FXCollections.observableArrayList(controller.schuetzenVonMannschaft(id)));
     }

@@ -11,10 +11,14 @@ import java.util.List;
 import io.github.manadhion.wettkampf.app.DBController;
 import io.github.manadhion.wettkampf.data.Liga;
 
-//Data Access-Objekt, koordiniert arbeiten zwischen DB-Tabelle und App
+/**
+ * Data Access-Objekt für die Tabelle liga, koordiniert Arbeiten zwischen DB und App.
+ */
 public class LigaDAO {
-    
-    //neue Tabelle anlegen wenn sie noch nicht existiert
+
+    /**
+     * Legt die Tabelle liga an, falls sie noch nicht existiert.
+     */
     public void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS liga ("
                 + "id TEXT PRIMARY KEY,"
@@ -29,7 +33,10 @@ public class LigaDAO {
 	    }
     }
 
-    //neue Entität einfügen
+    /**
+     * Neue Liga in die Datenbank einfügen.
+     * @param liga einzufügende Liga
+     */
     public void insert(Liga liga) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
@@ -51,7 +58,10 @@ public class LigaDAO {
 		}
     }
 
-    //bestehende Liga ändern
+    /**
+     * Bestehende Liga ändern.
+     * @param liga Liga mit den geänderten Werten
+     */
     public void update(Liga liga) {
 
         String sql = "UPDATE liga SET name=? WHERE id=?";
@@ -71,7 +81,10 @@ public class LigaDAO {
 		}
     }
 
-    //Liste mit allen Ligen
+    /**
+     * Alle Ligen holen.
+     * @return Liste aller Ligen
+     */
     public List<Liga> alleLigen() {
         List<Liga> ligen = new ArrayList<>();
 
@@ -96,7 +109,11 @@ public class LigaDAO {
         return ligen;
     }
 
-    //Liga durch id finden
+    /**
+     * Liga durch id finden.
+     * @param id id der gesuchten Liga
+     * @return gefundene Liga
+     */
     public Liga ligaMitIdFinden(String id) {
 
         Liga l = null;
@@ -118,7 +135,11 @@ public class LigaDAO {
         return l;
     }
 
-    //Liga löschen, falls falsch eingetragen oder ausgefallen
+    /**
+     * Liga löschen, falls falsch eingetragen oder ausgefallen.
+     * @param id id der zu löschenden Liga
+     * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
+     */
     public int delete(String id) {
         String sql = "DELETE FROM liga WHERE id=?;";
 

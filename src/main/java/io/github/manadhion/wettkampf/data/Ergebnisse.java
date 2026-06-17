@@ -2,6 +2,9 @@ package io.github.manadhion.wettkampf.data;
 
 import java.util.UUID;
 
+/**
+ * Entität eines Ergebnisses: das von einem Schützen an einem Wettkampftag geschossene Resultat.
+ */
 public class Ergebnisse {
 
     //Parameter
@@ -10,7 +13,12 @@ public class Ergebnisse {
     private String wettkampftagID;  //Referenz zum Wettkampftag
     private int ergebnis;           //Ergebnis des Schützen an diesem Tag
 
-    //Konstruktor für neues Ergebnis
+    /**
+     * Legt ein neues Ergebnis mit frisch erzeugter id an.
+     * @param schuetzeID id des Schützen, der das Ergebnis geschossen hat
+     * @param wettkampftagID id des Wettkampftages, an dem geschossen wurde
+     * @param ergebnis geschossene Ringzahl
+     */
     public Ergebnisse (String schuetzeID, String wettkampftagID, int ergebnis) {
 
         this.schuetzeID = schuetzeID;
@@ -21,7 +29,13 @@ public class Ergebnisse {
         id = UUID.randomUUID().toString();
     }
 
-    //Konstruktor für Korrekturen odeer laden aus DB
+    /**
+     * Lädt ein bestehendes Ergebnis aus der Datenbank oder für Korrekturen.
+     * @param id vorhandene id des Ergebnisses
+     * @param schuetzeID id des Schützen, der das Ergebnis geschossen hat
+     * @param wettkampftagID id des Wettkampftages, an dem geschossen wurde
+     * @param ergebnis geschossene Ringzahl
+     */
     public Ergebnisse (String id, String schuetzeID, String wettkampftagID, int ergebnis) {
 
         this.id = id;

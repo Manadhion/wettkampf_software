@@ -6,10 +6,15 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 
-//Klasse um verschiedene Alarme aufzurufen
+/**
+ * Stellt die verschiedenen Hinweis-, Fehler- und Bestätigungsdialoge der App bereit.
+ */
 public class OwnAlert {
 
-    //Für weitere Informationen
+    /**
+     * Informationshinweis anzeigen.
+     * @param message anzuzeigender Hinweistext
+     */
 	public void infoAlert(String message) {
 		Alert info = new Alert(AlertType.INFORMATION);
 		info.setTitle("Information");
@@ -17,7 +22,10 @@ public class OwnAlert {
 		info.showAndWait();
 	}
 
-    //Error - Information
+    /**
+     * Fehlermeldung anzeigen.
+     * @param text anzuzeigender Fehlertext
+     */
 	public void errorAlert(String text) {
 		Alert eqAlert = new Alert(AlertType.ERROR);
 		eqAlert.setTitle("Fehler!");
@@ -25,7 +33,10 @@ public class OwnAlert {
 		eqAlert.showAndWait();
 	}
 
-    //Information über erfolgreiches speichern
+    /**
+     * Hinweis über erfolgreiches Speichern anzeigen.
+     * @param message anzuzeigender Hinweistext
+     */
 	public void savedAlert(String message) {
 		Alert saved = new Alert(AlertType.INFORMATION);
 		saved.setTitle("gespeichert");
@@ -33,7 +44,10 @@ public class OwnAlert {
 		saved.showAndWait();
 	}
 
-    //Lösch-Dialog anzeigen und nur zurückgeben, ob bestätigt wurde
+    /**
+     * Lösch-Dialog für eine Saison anzeigen.
+     * @return true wenn mit OK bestätigt wurde
+     */
     public boolean saisonLoeschenBestaetigen() {
         Alert saisonLoeschen = new Alert(AlertType.CONFIRMATION);
         saisonLoeschen.setTitle("Löschvorgang");
@@ -42,7 +56,10 @@ public class OwnAlert {
 		return result.isPresent() && result.get() == ButtonType.OK; //true zurück wenn mit ok bestätigt wurde
     }
 
-	//Lösch-Dialog anzeigen und nur zurückgeben, ob bestätigt wurde
+	/**
+	 * Lösch-Dialog für einen Wettkampftag anzeigen.
+	 * @return true wenn mit OK bestätigt wurde
+	 */
 	public boolean wTagLoeschenBestaetigen() {
         Alert wTagLoeschen = new Alert(AlertType.CONFIRMATION);
         wTagLoeschen.setTitle("Löschvorgang");
@@ -51,7 +68,10 @@ public class OwnAlert {
 		return result.isPresent() && result.get() == ButtonType.OK; //true zurück wenn mit ok bestätigt wurde
     }
 
-	//Lösch-Dialog anzeigen und nur zurückgeben, ob bestätigt wurde
+	/**
+	 * Lösch-Dialog für eine Liga anzeigen.
+	 * @return true wenn mit OK bestätigt wurde
+	 */
 	public boolean ligaLöschBestaetigen() {
         Alert ligaLoeschen = new Alert(AlertType.CONFIRMATION);
         ligaLoeschen.setTitle("Löschvorgang");
@@ -60,7 +80,10 @@ public class OwnAlert {
 		return result.isPresent() && result.get() == ButtonType.OK; //true zurück wenn mit ok bestätigt wurde
     }
 
-	//Lösch-Dialog anzeigen und nur zurückgeben, ob bestätigt wurde
+	/**
+	 * Lösch-Dialog für eine Mannschaft anzeigen.
+	 * @return true wenn mit OK bestätigt wurde
+	 */
 	public boolean mannschaftBestaetigen() {
         Alert mannschaftLoeschen = new Alert(AlertType.CONFIRMATION);
         mannschaftLoeschen.setTitle("Löschvorgang");
@@ -69,7 +92,10 @@ public class OwnAlert {
 		return result.isPresent() && result.get() == ButtonType.OK; //true zurück wenn mit ok bestätigt wurde
     }
 
-	//Lösch-Dialog anzeigen und nur zurückgeben, ob bestätigt wurde
+	/**
+	 * Lösch-Dialog für eine Liga anzeigen.
+	 * @return true wenn mit OK bestätigt wurde
+	 */
 	public boolean ligaBestaetigen() {
         Alert ligaLoeschen = new Alert(AlertType.CONFIRMATION);
         ligaLoeschen.setTitle("Löschvorgang");
@@ -78,7 +104,10 @@ public class OwnAlert {
 		return result.isPresent() && result.get() == ButtonType.OK; //true zurück wenn mit ok bestätigt wurde
     }
 
-	//Lösch-Dialog anzeigen und nur zurückgeben, ob bestätigt wurde
+	/**
+	 * Lösch-Dialog für eine Altersklasse anzeigen.
+	 * @return true wenn mit OK bestätigt wurde
+	 */
 	public boolean alterBestaetigen() {
         Alert altertLoeschen = new Alert(AlertType.CONFIRMATION);
         altertLoeschen.setTitle("Löschvorgang");
@@ -87,7 +116,10 @@ public class OwnAlert {
 		return result.isPresent() && result.get() == ButtonType.OK; //true zurück wenn mit ok bestätigt wurde
     }
 
-	//Lösch-Dialog anzeigen und nur zurückgeben, ob bestätigt wurde
+	/**
+	 * Lösch-Dialog für einen Schützen anzeigen.
+	 * @return true wenn mit OK bestätigt wurde
+	 */
 	public boolean schuetzeBestaetigen() {
         Alert altertLoeschen = new Alert(AlertType.CONFIRMATION);
         altertLoeschen.setTitle("Löschvorgang");
@@ -96,7 +128,10 @@ public class OwnAlert {
 		return result.isPresent() && result.get() == ButtonType.OK; //true zurück wenn mit ok bestätigt wurde
     }
 
-	//Lösch-Dialog anzeigen und nur zurückgeben, ob bestätigt wurde
+	/**
+	 * Lösch-Dialog für eine Begegnung anzeigen.
+	 * @return true wenn mit OK bestätigt wurde
+	 */
 	public boolean begegnungBestaetigen() {
         Alert begegnungLoeschen = new Alert(AlertType.CONFIRMATION);
         begegnungLoeschen.setTitle("Löschvorgang");

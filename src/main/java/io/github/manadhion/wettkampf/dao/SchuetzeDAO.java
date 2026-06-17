@@ -12,10 +12,14 @@ import io.github.manadhion.wettkampf.app.DBController;
 import io.github.manadhion.wettkampf.data.Schuetze;
 
 
-//Data Access-Objekt, koordiniert arbeiten zwischen DB-Tabelle und App
+/**
+ * Data Access-Objekt für die Tabelle schuetze, koordiniert Arbeiten zwischen DB und App.
+ */
 public class SchuetzeDAO {
-    
-    //neue Tabelle anlegen wenn sie noch nicht existiert
+
+    /**
+     * Legt die Tabelle schuetze an, falls sie noch nicht existiert.
+     */
     public void createTableIfNotExists() {
         String sql = "CREATE TABLE IF NOT EXISTS schuetze ("
                 + "id TEXT PRIMARY KEY,"
@@ -33,7 +37,10 @@ public class SchuetzeDAO {
 	    }
     }
 
-    //neue Entität einfügen
+    /**
+     * Neuen Schützen in die Datenbank einfügen.
+     * @param schuetze einzufügender Schütze
+     */
     public void insert(Schuetze schuetze) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
@@ -59,7 +66,10 @@ public class SchuetzeDAO {
 
     }
 
-    //bestehenden Schützen ändern
+    /**
+     * Bestehenden Schützen ändern.
+     * @param schuetze Schütze mit den geänderten Werten
+     */
     public void update(Schuetze schuetze) {
 
         String sql = "UPDATE schuetze SET vorname=?, nachname=?, mannschaftid=?, altersKlasse=? WHERE id=?";
@@ -83,7 +93,11 @@ public class SchuetzeDAO {
 
     }
 
-    //alle Schützen einer Mannschaft
+    /**
+     * Alle Schützen einer Mannschaft holen.
+     * @param id id der Mannschaft
+     * @return Liste der Schützen dieser Mannschaft
+     */
     public List<Schuetze> schuetzenVonMannschaft(String id) {
 
         List<Schuetze> schuetze = new ArrayList<>();
@@ -111,7 +125,11 @@ public class SchuetzeDAO {
         return schuetze;
     }
 
-    //Schütze löschen, falls falsch eingetragen oder ausgefallen
+    /**
+     * Schütze löschen, falls falsch eingetragen oder ausgefallen.
+     * @param id id des zu löschenden Schützen
+     * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
+     */
     public int delete(String id) {
         String sql = "DELETE FROM schuetze WHERE id=?;";
 
