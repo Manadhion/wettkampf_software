@@ -94,6 +94,15 @@
 }
 .button:hover { -fx-background-color: #1d4ed8; }
 
+/* einheitliche Symbol-Buttons (+, -, Stift): kompakt, gleich groß und gut lesbar */
+.button.add,
+.button.danger,
+.button.edit {
+    -fx-font-size: 16px;           /* größeres Symbol, besser erkennbar */
+    -fx-padding: 4 10;             /* schmaler als Text-Buttons, damit das Symbol passt */
+    -fx-min-width: 34px;           /* feste Mindestbreite, sonst wird der Inhalt zu „…" gekürzt */
+}
+
 /* nur für Buttons mit der Klasse danger */
 .button.danger {
     -fx-background-color: #dc2626;

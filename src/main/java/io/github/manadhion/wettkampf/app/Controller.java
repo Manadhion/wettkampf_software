@@ -382,6 +382,7 @@ public class Controller {
         sDAO.insert(saison);
         saisonView.close();
         viewMain.saisonComboAktualisieren();
+        viewMain.saisonAuswaehlen(saison.getId()); //neu angelegte Saison sofort auswählen
     }
 
     /**
@@ -445,6 +446,7 @@ public class Controller {
         wDAO.insert(w);
         wTageView.close();
         viewMain.wTagComboAktualisieren(id);
+        viewMain.wTagAuswaehlen(w.getId()); //neu angelegten Wettkampftag sofort auswählen
     }
 
     /**
@@ -520,6 +522,7 @@ public class Controller {
         mDAO.insert(m);
         mannschaftView.close();
         viewMain.mannschaftComboAktualisieren();
+        viewMain.mannschaftAuswaehlen(m.getId()); //neu angelegte Mannschaft sofort auswählen
     }
 
     /**
@@ -749,6 +752,7 @@ public class Controller {
         sDAO.insert(s);
         schuetzeView.close();
         viewMain.schuetzeComboAktualisieren(id);
+        viewMain.schuetzeAuswaehlen(s.getId()); //neu angelegten Schützen sofort auswählen
     }
 
     /**

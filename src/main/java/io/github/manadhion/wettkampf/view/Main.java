@@ -58,9 +58,10 @@ public class Main extends Application {
     private ComboBox<Schuetze> schuetzeCombo;
     private ComboBox<Mannschaft> mannschaftCombo;
     private TextField ergebnisFeld;
+    private Text ergebnisText;
     private Text aktTagText;
     private VBox tagAnzeige = new VBox();
-    private Button ergebnisButton = new Button("Speichern");
+    private Button ergebnisButton = new Button("speichern");
     private Button begegnungButton;
     private Button beamerButton = new Button("Beamer-Anzeige starten");
 
@@ -170,6 +171,7 @@ public class Main extends Application {
 
         //Buton um neue Saison anzulegen
         Button saPlusButton = new Button("+");
+        saPlusButton.getStyleClass().add("add"); //Aufrufname für die .css Datei
         saisonContainer.getChildren().add(saPlusButton);
         Tooltip tipsaPlus = new Tooltip("Neue Saison anlegen");
         tipsaPlus.setShowDelay(Duration.millis(300));
@@ -192,7 +194,7 @@ public class Main extends Application {
 		});
 
         //Buton um Saison zu bearbeiten
-        Button saEditButton = new Button("✎");
+        Button saEditButton = new Button("✏");
         saEditButton.setDisable(true);
         saEditButton.getStyleClass().add("edit"); //Aufrufname für die .css Datei
         saisonContainer.getChildren().add(saEditButton);
@@ -240,6 +242,7 @@ public class Main extends Application {
         //Buton um neuen Wettkampftag anzulegen
         Button wTagPlusButton = new Button("+");
         wTagPlusButton.setDisable(true);
+        wTagPlusButton.getStyleClass().add("add"); //Aufrufname für die .css Datei
         wTagContainer.getChildren().add(wTagPlusButton);
         Tooltip tipWTagePlus = new Tooltip("Neuen Wettkampftag anlegen");
         tipWTagePlus.setShowDelay(Duration.millis(300));
@@ -261,7 +264,7 @@ public class Main extends Application {
 		});
 
         //Buton um Wettkampftag zu bearbeiten
-        Button wtEditButton = new Button("✎");
+        Button wtEditButton = new Button("✏");
         wtEditButton.setDisable(true);
         wtEditButton.getStyleClass().add("edit"); //Aufrufname für die .css Datei
         wTagContainer.getChildren().add(wtEditButton);
@@ -331,6 +334,7 @@ public class Main extends Application {
 
         //Buton um neue Mannschaft anzulegen
         Button mPlusButton = new Button("+");
+        mPlusButton.getStyleClass().add("add"); //Aufrufname für die .css Datei
         mannschaftBox.getChildren().add(mPlusButton);
         Tooltip tipmPlus = new Tooltip("Neue Mannschaft anlegen");
         tipmPlus.setShowDelay(Duration.millis(300));
@@ -352,7 +356,7 @@ public class Main extends Application {
 		});
 
         //Buton um Mannschaft zu bearbeiten
-        Button mEditButton = new Button("✎");
+        Button mEditButton = new Button("✏");
         mEditButton.setDisable(true);
         mEditButton.getStyleClass().add("edit"); //Aufrufname für die .css Datei
         mannschaftBox.getChildren().add(mEditButton);
@@ -386,6 +390,7 @@ public class Main extends Application {
         //Buton um neuen Schützen anzulegen
         Button sPlusButton = new Button("+");
         sPlusButton.setDisable(true);
+        sPlusButton.getStyleClass().add("add"); //Aufrufname für die .css Datei
         schuetzeBox.getChildren().add(sPlusButton);
         Tooltip tipsPlus = new Tooltip("Neuen Schützen anlegen");
         tipsPlus.setShowDelay(Duration.millis(300));
@@ -407,7 +412,7 @@ public class Main extends Application {
 		});
 
         //Buton um Schützen zu bearbeiten
-        Button sEditButton = new Button("✎");
+        Button sEditButton = new Button("✏");
         sEditButton.setDisable(true);
         sEditButton.getStyleClass().add("edit"); //Aufrufname für die .css Datei
         schuetzeBox.getChildren().add(sEditButton);
@@ -455,8 +460,8 @@ public class Main extends Application {
                 }
             });
         
-        //Textfeld-Überschrift für das Ergebnis
-        Text ergebnisText = new Text("Ergebnis: ");
+        //Textfeld-Überschrift für das Ergebnis, benennt den aktuell gewählten Schützen
+        ergebnisText = new Text("Ergebnis des Schützen: ");
         ergebnisText.getStyleClass().add("ueberschriftLinks"); //Aufrufname für die .css Datei
         links.getChildren().add(ergebnisText);
 
@@ -626,6 +631,13 @@ public class Main extends Application {
         Schuetze schuetze = schuetzeCombo.getSelectionModel().getSelectedItem();
         Wettkampftage tag = wTageBox.getSelectionModel().getSelectedItem();
 
+        //Überschrift auf den gewählten Schützen beziehen, damit klar ist wessen Ergebnis erfasst wird
+        if (schuetze == null) {
+            ergebnisText.setText("Ergebnis des Schützen: ");
+        } else {
+            ergebnisText.setText("Ergebnis von " + schuetze.getVorname() + " " + schuetze.getNachname() + ": ");
+        }
+
         if (schuetze == null || tag == null) {
             //es ist noch nicht beides gewählt, Feld leeren und sperren
             ergebnisFeld.clear();
@@ -772,5 +784,57 @@ public class Main extends Application {
      */
     public void schuetzeComboAktualisieren(String id) {
         schuetzeCombo.setItems(FXCollections.observableArrayList(controller.schuetzenVonMannschaft(id)));
+    }
+
+    /**
+     * Neu angelegte Saison im Hauptfenster auswählen, damit sie sofort sichtbar ist.
+     * @param id id der auszuwählenden Saison
+     */
+    public void saisonAuswaehlen(String id) {
+        for (Saison s : saisonCombo.getItems()) {
+            if (s.getId().equals(id)) {
+                saisonCombo.getSelectionModel().select(s);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Neu angelegten Wettkampftag im Hauptfenster auswählen, damit er sofort sichtbar ist.
+     * @param id id des auszuwählenden Wettkampftages
+     */
+    public void wTagAuswaehlen(String id) {
+        for (Wettkampftage w : wTageBox.getItems()) {
+            if (w.getId().equals(id)) {
+                wTageBox.getSelectionModel().select(w);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Neu angelegte Mannschaft im Hauptfenster auswählen, damit sie sofort sichtbar ist.
+     * @param id id der auszuwählenden Mannschaft
+     */
+    public void mannschaftAuswaehlen(String id) {
+        for (Mannschaft m : mannschaftCombo.getItems()) {
+            if (m.getId().equals(id)) {
+                mannschaftCombo.getSelectionModel().select(m);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Neu angelegten Schützen im Hauptfenster auswählen, damit er sofort sichtbar ist.
+     * @param id id des auszuwählenden Schützen
+     */
+    public void schuetzeAuswaehlen(String id) {
+        for (Schuetze s : schuetzeCombo.getItems()) {
+            if (s.getId().equals(id)) {
+                schuetzeCombo.getSelectionModel().select(s);
+                return;
+            }
+        }
     }
 }

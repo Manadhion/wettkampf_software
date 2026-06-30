@@ -100,6 +100,7 @@ public class MannschaftView extends Stage {
 
         //Buton um neue Liga anzulegen
         Button saPlusButton = new Button("+");
+        saPlusButton.getStyleClass().add("add"); //Aufrufname für die .css Datei
         ligaBox.getChildren().add(saPlusButton);
         Tooltip tipsaPlus = new Tooltip("Neue Liga anlegen");
         tipsaPlus.setShowDelay(Duration.millis(300));
@@ -121,7 +122,7 @@ public class MannschaftView extends Stage {
 		});
 
         //Buton um Liga zu bearbeiten
-        Button saEditButton = new Button("✎");
+        Button saEditButton = new Button("✏");
         saEditButton.setDisable(true);
         saEditButton.getStyleClass().add("edit"); //Aufrufname für die .css Datei
         ligaBox.getChildren().add(saEditButton);

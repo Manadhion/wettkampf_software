@@ -149,6 +149,7 @@ public class SchuetzeView extends Stage {
 
         //Buton um neue Altersklasse anzulegen
         Button saPlusButton = new Button("+");
+        saPlusButton.getStyleClass().add("add"); //Aufrufname für die .css Datei
         alterBox.getChildren().add(saPlusButton);
         Tooltip tipsaPlus = new Tooltip("Neue Altersklasse anlegen");
         tipsaPlus.setShowDelay(Duration.millis(300));
@@ -170,7 +171,7 @@ public class SchuetzeView extends Stage {
 		});
 
         //Buton um Altersklasse zu bearbeiten
-        Button saEditButton = new Button("✎");
+        Button saEditButton = new Button("✏");
         saEditButton.setDisable(true);
         saEditButton.getStyleClass().add("edit"); //Aufrufname für die .css Datei
         alterBox.getChildren().add(saEditButton);
@@ -227,7 +228,7 @@ public class SchuetzeView extends Stage {
 		});
         buttonBox.getChildren().addAll(speichern, abbrechen);
 
-        Scene scene = new Scene(layout,480, 310); //Fenstereinstellungens-Parameter
+        Scene scene = new Scene(layout,510, 310); //Fenstereinstellungens-Parameter
 
         //style.css in dieses Fenster/Szene einbinden
         scene.getStylesheets().add(getClass().getResource("/io/github/manadhion/wettkampf/view/style.css").toExternalForm());
