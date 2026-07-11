@@ -4,6 +4,9 @@ target/
 # SQLite-Datenbankdateien
 *.db
 
+# Excel-Ergebnislisten (Datenquellen, nicht Teil des Codes)
+*.xlsx
+
 # IDE- und Editor-Dateien
 .vscode/
 .idea/

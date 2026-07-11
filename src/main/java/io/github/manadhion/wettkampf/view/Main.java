@@ -3,8 +3,12 @@ package io.github.manadhion.wettkampf.view;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Alert;
@@ -17,9 +21,12 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
@@ -64,6 +71,7 @@ public class Main extends Application {
     private Button ergebnisButton = new Button("speichern");
     private Button begegnungButton;
     private Button beamerButton = new Button("Beamer-Anzeige starten");
+    private Button pdfButton = new Button("Saison-PDF …");
 
     /**
      * Einstiegspunkt, erzeugt eine Instanz und startet die Methode start aus der App-Klasse.
@@ -151,6 +159,31 @@ public class Main extends Application {
             }
         });
         links.getChildren().add(beamerButton);
+
+        //Button um die Saisondaten bis zum gewählten Wettkampftag als PDF zu speichern
+        pdfButton.setDisable(true); //erst aktiv wenn ein Wettkampftag gewählt ist
+        Tooltip tipPdf = new Tooltip("Saisondaten bis zum gewählten Wettkampftag als PDF speichern");
+        tipPdf.setShowDelay(Duration.millis(300));
+        pdfButton.setTooltip(tipPdf);
+        pdfButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Wettkampftage tag = wTageBox.getSelectionModel().getSelectedItem();
+                if (tag == null) {
+                    return;
+                }
+                //Zielort für das PDF wählen, mit Namensvorschlag aus dem Datum des Wettkampftages
+                FileChooser pdfAuswahl = new FileChooser();
+                pdfAuswahl.setTitle("Saison-PDF speichern");
+                pdfAuswahl.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF-Dateien", "*.pdf"));
+                pdfAuswahl.setInitialFileName("Saison_bis_" + tag.getDatum().format(DATUM_FORMAT).replace('.', '-') + ".pdf");
+                File ziel = pdfAuswahl.showSaveDialog(primaryStage);
+                if (ziel != null) {
+                    controller.saisonAlsPdf(tag, ziel);
+                }
+            }
+        });
+        links.getChildren().add(pdfButton);
 
         //Textfeld für die Auswahl der Saison
         Text saisonText = new Text("Saison: ");
@@ -302,15 +335,17 @@ public class Main extends Application {
             (obs, alterTag, neuerTag) -> {
 
                 if (neuerTag == null) {
-                    //wenn kein Tag gewählt ist, löschen-, bearbeiten- und Beamer-Button deaktivieren
+                    //wenn kein Tag gewählt ist, löschen-, bearbeiten-, Beamer- und PDF-Button deaktivieren
                     wtMinusButton.setDisable(true);
                     wtEditButton.setDisable(true);
                     beamerButton.setDisable(true);
+                    pdfButton.setDisable(true);
                 } else {
-                    //wenn ein Tag gewählt ist, löschen-, bearbeiten- und Beamer-Button aktivieren und begegnungen aktuallisieren
+                    //wenn ein Tag gewählt ist, löschen-, bearbeiten-, Beamer- und PDF-Button aktivieren und begegnungen aktuallisieren
                     wtMinusButton.setDisable(false);
                     wtEditButton.setDisable(false);
                     beamerButton.setDisable(false);
+                    pdfButton.setDisable(false);
                     begegnungenAnzeigen();
                 }
             });
@@ -700,7 +735,21 @@ public class Main extends Application {
         Wettkampftage tag = wTageBox.getSelectionModel().getSelectedItem();
         List<Begegnung> begegnungen = controller.begegnungenAnDiesemTag(tag.getId());
 
-        //Für jede Begegnung an diesem Tag lege an:
+        //Raster, damit Namen, Ergebnisse und Löschen-Button aller Begegnungen sauber in Spalten untereinander stehen
+        GridPane raster = new GridPane();
+        raster.getStyleClass().add("begegnung-raster"); //Aufrufname für die .css Datei
+        tagAnzeige.getChildren().add(raster);
+
+        //Ausrichtung je Spalte: Heim rechtsbündig ans "vs.", Gegner linksbündig, die Ergebnisse um den Doppelpunkt zentriert
+        HPos[] spaltenAusrichtung = { HPos.RIGHT, HPos.CENTER, HPos.LEFT, HPos.RIGHT, HPos.CENTER, HPos.LEFT, HPos.CENTER };
+        for (HPos ausrichtung : spaltenAusrichtung) {
+            ColumnConstraints spalte = new ColumnConstraints();
+            spalte.setHalignment(ausrichtung);
+            raster.getColumnConstraints().add(spalte);
+        }
+
+        //Für jede Begegnung an diesem Tag eine Zeile im Raster anlegen:
+        int zeile = 0;
         for(Begegnung b :begegnungen) {
 
             //Mannschaften holen
@@ -711,40 +760,33 @@ public class Main extends Application {
             int gesamtHeim = controller.gesamtErgebnisBeste3(heim.getId(), b.getWettkampftag());
             int gesamtGegner = controller.gesamtErgebnisBeste3(gegner.getId(), b.getWettkampftag());
 
-            HBox tagAnzeigeBox = new HBox();
-            tagAnzeigeBox.getStyleClass().add("containerLinks"); //Aufrufname für die .css Datei
-            tagAnzeige.getChildren().add(tagAnzeigeBox);
-
-            //Text der als Begegnung angezeigt wird   
+            //Text der als Begegnung angezeigt wird
             Text heimBegegnung = new Text(heim.getName());
             heimBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
 
-            //Text der als Begegnung angezeigt wird   
-            Text vsBegegnung = new Text(" vs. ");
-             vsBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
+            //Text der als Begegnung angezeigt wird
+            Text vsBegegnung = new Text("vs.");
+            vsBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
 
-            //Text der als Begegnung angezeigt wird   
+            //Text der als Begegnung angezeigt wird
             Text gegnerBegegnung = new Text(gegner.getName());
             gegnerBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
 
-            //Text der als Begegnung angezeigt wird   
+            //Text der als Begegnung angezeigt wird
             Text ergHeimBegegnung = new Text(String.valueOf(gesamtHeim));
             ergHeimBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
 
-            //Text der als Begegnung angezeigt wird   
-            Text sepBegegnung = new Text(" : ");
+            //Text der als Begegnung angezeigt wird
+            Text sepBegegnung = new Text(":");
             sepBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
 
-            //Text der als Begegnung angezeigt wird   
+            //Text der als Begegnung angezeigt wird
             Text ergGegnerBegegnung = new Text(String.valueOf(gesamtGegner));
             ergGegnerBegegnung.getStyleClass().add("Text-begegnung"); //Aufrufname für die .css Datei
-
-            tagAnzeigeBox.getChildren().addAll(heimBegegnung, vsBegegnung, gegnerBegegnung, ergHeimBegegnung, sepBegegnung, ergGegnerBegegnung);
 
             //Buton um Begegnung zu löschen
             Button beMinusButton = new Button("-");
             beMinusButton.getStyleClass().add("danger"); //Aufrufname für die .css Datei
-            tagAnzeigeBox.getChildren().add(beMinusButton);
             Tooltip tipbeMinus = new Tooltip("Diese Begegnung löschen");
             tipbeMinus.setShowDelay(Duration.millis(300));
             beMinusButton.setTooltip(tipbeMinus);
@@ -752,6 +794,25 @@ public class Main extends Application {
                 controller.begegnungLöschenWarnen(b.getId());
             });
 
+            //Zeile mittig ausrichten, damit Texte und Löschen-Button auf einer Höhe liegen
+            RowConstraints zeilenAusrichtung = new RowConstraints();
+            zeilenAusrichtung.setValignment(VPos.CENTER);
+            raster.getRowConstraints().add(zeilenAusrichtung);
+
+            //etwas Luft vor dem Ergebnisblock und vor dem Löschen-Button, damit Begegnung und Ergebnis optisch getrennt sind
+            GridPane.setMargin(ergHeimBegegnung, new Insets(0, 0, 0, 18));
+            GridPane.setMargin(beMinusButton, new Insets(0, 0, 0, 18));
+
+            //Elemente spaltenweise in die aktuelle Zeile setzen
+            raster.add(heimBegegnung, 0, zeile);
+            raster.add(vsBegegnung, 1, zeile);
+            raster.add(gegnerBegegnung, 2, zeile);
+            raster.add(ergHeimBegegnung, 3, zeile);
+            raster.add(sepBegegnung, 4, zeile);
+            raster.add(ergGegnerBegegnung, 5, zeile);
+            raster.add(beMinusButton, 6, zeile);
+
+            zeile++;
         }
 
     }

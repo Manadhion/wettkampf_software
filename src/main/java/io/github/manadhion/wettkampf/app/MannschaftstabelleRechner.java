@@ -1,5 +1,6 @@
 package io.github.manadhion.wettkampf.app;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -36,6 +37,17 @@ public class MannschaftstabelleRechner {
      * @return Tabellenzeilen, sortiert nach Begegnungspunkten und bei Gleichstand nach Ringen
      */
     public List<TabellenZeile> berechne(Liga liga, String saisonID) {
+        return berechne(liga, saisonID, null);
+    }
+
+    /**
+     * Tabelle einer Liga bis zu einem Stichtag berechnen, absteigend sortiert.
+     * @param liga Liga, deren Tabelle berechnet wird
+     * @param saisonID id der Saison, über die gerechnet wird
+     * @param stichtag nur Wettkampftage bis einschließlich dieses Datums zählen, oder null für die ganze Saison
+     * @return Tabellenzeilen, sortiert nach Begegnungspunkten und bei Gleichstand nach Ringen
+     */
+    public List<TabellenZeile> berechne(Liga liga, String saisonID, LocalDate stichtag) {
 
         //Mannschafts-ID -> Tabellenzeile, mit allen Mannschaften der Liga vorbelegt (so stehen auch Mannschaften ohne Begegnung drin)
         Map<String, TabellenZeile> tabelle = new LinkedHashMap<>();
@@ -47,6 +59,11 @@ public class MannschaftstabelleRechner {
 
         //jeden Wettkampftag der Saison durchgehen
         for (Wettkampftage tag : controller.wettkampftageVonSaison(saisonID)) {
+
+            //nach dem Stichtag liegende Wettkampftage nicht mitzählen
+            if (stichtag != null && tag.getDatum().isAfter(stichtag)) {
+                continue;
+            }
 
             //jede Begegnung dieses Tages durchgehen
             for (Begegnung b : controller.begegnungenAnDiesemTag(tag.getId())) {

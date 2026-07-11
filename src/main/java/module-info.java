@@ -4,6 +4,8 @@ module io.github.manadhion {
     requires java.prefs;
     requires org.xerial.sqlitejdbc;
     requires javafx.graphics;
+    requires java.desktop;
+    requires com.github.librepdf.openpdf;
 
     opens io.github.manadhion.wettkampf.view to javafx.graphics;
 }

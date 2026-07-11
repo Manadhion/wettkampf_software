@@ -24,6 +24,7 @@ import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -36,6 +37,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
@@ -106,6 +108,14 @@ public class BeamerView extends Stage {
         setFullScreen(false);               //Vollbild true - zu debug Zwecken hier false
         setFullScreenExitHint("");         //den Standard-Hinweis ausblenden
 
+        //nutzbare Bildschirmfläche (ohne Taskleiste) ermitteln, um das Fenster darauf zu begrenzen
+        Rectangle2D bildschirm = Screen.getPrimary().getVisualBounds();
+
+        //Fenster oben links andocken und maximieren, damit es bei langen Listen nicht über den Bildschirm hinauswächst und die Titelleiste erreichbar bleibt
+        setX(bildschirm.getMinX());
+        setY(bildschirm.getMinY());
+        setMaximized(true);
+
         root.getStyleClass().add("beamer-root"); //Aufrufname für die .css Datei
 
         //Kopfzeile aufbauen
@@ -117,7 +127,8 @@ public class BeamerView extends Stage {
         //Timelines starten
         timelinesStarten();
 
-        Scene scene = new Scene(root);
+        //Scene auf die Bildschirmgröße festlegen, damit sie nicht auf die (evtl. riesige) Wunschgröße des Inhalts anwächst
+        Scene scene = new Scene(root, bildschirm.getWidth(), bildschirm.getHeight());
 
         //beamer.css einbinden
         scene.getStylesheets().add(getClass().getResource("/io/github/manadhion/wettkampf/view/beamer.css").toExternalForm());
@@ -348,8 +359,9 @@ public class BeamerView extends Stage {
         //solange noch keine scrollbare Tabelle gebaut ist, gibt es nichts zu scrollen
         einzelScrollPane = null;
 
-        //alle Schützen der Liga mit ihrem heutigen Ergebnis sammeln
+        //alle Schützen der Liga sammeln, die an diesem Wettkampftag schon ein Ergebnis geschossen haben
         List<EinzelZeile> zeilen = new ArrayList<>();
+        boolean ligaHatSchuetzen = false; //merkt sich, ob die Liga überhaupt Schützen hat
         for (Mannschaft m : controller.alleMannschaften()) {
 
             //nur Mannschaften dieser Liga berücksichtigen
@@ -358,33 +370,30 @@ public class BeamerView extends Stage {
             }
 
             for (Schuetze s : controller.schuetzenVonMannschaft(m.getId())) {
+                ligaHatSchuetzen = true;
                 Ergebnisse e = controller.ergebnisFuer(s.getId(), tag.getId());
-                Integer wert = (e == null) ? null : e.getErgebnis(); //null wenn der Schütze heute noch kein Ergebnis hat
-                zeilen.add(new EinzelZeile(s.getVorname() + " " + s.getNachname(), m.getName(), wert));
+
+                //Schützen ohne Ergebnis werden auf dem Beamer nicht angezeigt
+                if (e == null) {
+                    continue;
+                }
+                zeilen.add(new EinzelZeile(s.getVorname() + " " + s.getNachname(), m.getName(), e.getErgebnis()));
             }
         }
 
-        //keine Schützen in dieser Liga -> Hinweis anzeigen
+        //nichts anzuzeigen -> passenden Hinweis zeigen: entweder hat noch niemand geschossen oder die Liga hat keine Schützen
         if (zeilen.isEmpty()) {
-            Text hinweis = new Text("Keine Schützen in dieser Liga");
+            String hinweisText = ligaHatSchuetzen ? "Noch keine Ergebnisse" : "Keine Schützen in dieser Liga";
+            Text hinweis = new Text(hinweisText);
             hinweis.getStyleClass().add("beamer-platzhalter"); //Aufrufname für die .css Datei
             box.getChildren().add(hinweis);
             return box;
         }
 
-        //nach Ergebnis absteigend sortieren, Schützen ohne Ergebnis ans Ende
+        //nach Ergebnis absteigend sortieren, die besten Schützen zuerst
         Collections.sort(zeilen, new Comparator<EinzelZeile>() {
             @Override
             public int compare(EinzelZeile a, EinzelZeile b) {
-                if (a.ergebnis == null && b.ergebnis == null) {
-                    return 0;
-                }
-                if (a.ergebnis == null) {
-                    return 1;
-                }
-                if (b.ergebnis == null) {
-                    return -1;
-                }
                 return b.ergebnis - a.ergebnis;
             }
         });
@@ -399,22 +408,15 @@ public class BeamerView extends Stage {
         tabelle.add(kopfZelle("Mannschaft"), 2, 0);
         tabelle.add(kopfZelle("Ergebnis"), 3, 0);
 
-        //je Schütze eine Zeile, Platznummer nur für Schützen mit Ergebnis
+        //je Schütze eine Zeile mit fortlaufender Platznummer
         int zeileNr = 1;
-        int platz = 1;
         for (EinzelZeile z : zeilen) {
 
-            String platzAnzeige = (z.ergebnis == null) ? "" : platz + ".";
-            String ergebnisAnzeige = (z.ergebnis == null) ? "—" : String.valueOf(z.ergebnis);
-
-            tabelle.add(zelle(platzAnzeige), 0, zeileNr);
+            tabelle.add(zelle(zeileNr + "."), 0, zeileNr);
             tabelle.add(zelle(z.name), 1, zeileNr);
             tabelle.add(zelle(z.mannschaft), 2, zeileNr);
-            tabelle.add(ergebnisZelle(ergebnisAnzeige), 3, zeileNr);
+            tabelle.add(ergebnisZelle(String.valueOf(z.ergebnis)), 3, zeileNr);
 
-            if (z.ergebnis != null) {
-                platz++;
-            }
             zeileNr++;
         }
 
@@ -561,14 +563,14 @@ public class BeamerView extends Stage {
         einzelScrollStoppen();
     }
 
-    //eine Zeile der Einzelergebnis-Tabelle: Schützenname, Mannschaft und Ergebnis (null wenn noch keins)
+    //eine Zeile der Einzelergebnis-Tabelle: Schützenname, Mannschaft und geschossenes Ergebnis
     private static class EinzelZeile {
 
         private String name;
         private String mannschaft;
-        private Integer ergebnis;
+        private int ergebnis;
 
-        private EinzelZeile(String name, String mannschaft, Integer ergebnis) {
+        private EinzelZeile(String name, String mannschaft, int ergebnis) {
             this.name = name;
             this.mannschaft = mannschaft;
             this.ergebnis = ergebnis;

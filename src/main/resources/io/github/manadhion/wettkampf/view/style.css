@@ -122,6 +122,13 @@
     -fx-fill: #220c9c;         /* Textfarbe */
 }
 
+/*Raster, in dem die Begegnungen des Wettkampftages spaltenweise ausgerichtet stehen */
+.begegnung-raster {
+    -fx-hgap: 12;                  /* waagerechter Abstand zwischen den Spalten */
+    -fx-vgap: 10;                  /* senkrechter Abstand zwischen den Begegnungen */
+    -fx-padding: 6 0 0 0;          /* etwas Abstand nach oben zum Button „Begegnung anlegen" */
+}
+
 
 /*oberstes Layout - newSaison - Fenster*/
 .newSaison-container {

@@ -26,6 +26,7 @@ import io.github.manadhion.wettkampf.data.Mannschaft;
 import io.github.manadhion.wettkampf.data.Saison;
 import io.github.manadhion.wettkampf.data.Schuetze;
 import io.github.manadhion.wettkampf.data.Wettkampftage;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -819,6 +820,22 @@ public class Controller {
         this.beamerView = bView;   //Controller merkt sich die View
         bView.beamerStarten(tag);  //Szene aufbauen und starten
         bView.show();
+    }
+
+    /**
+     * Saisondaten bis zum gewählten Wettkampftag als PDF in die gewählte Datei schreiben.
+     * @param tag Wettkampftag, bis zu dem die Daten ausgegeben werden
+     * @param datei Zieldatei für das PDF
+     */
+    public void saisonAlsPdf(Wettkampftage tag, File datei) {
+        try {
+            SaisonPdf pdf = new SaisonPdf(this);
+            pdf.erstelle(tag, datei);
+            alert.infoAlert("PDF wurde erstellt");
+        } catch (Exception e) {
+            e.printStackTrace();
+            alert.errorAlert("PDF konnte nicht erstellt werden!");
+        }
     }
 
     /**
