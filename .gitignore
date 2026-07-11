@@ -1,6 +1,9 @@
 # Build-Ausgabe von Maven
 target/
 
+# fertige Windows-Anwendung / Installer (per packaging\build-exe.ps1 erzeugt)
+dist/
+
 # SQLite-Datenbankdateien
 *.db
 

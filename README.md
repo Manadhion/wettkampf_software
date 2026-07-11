@@ -57,24 +57,32 @@ _Screenshots folgen._
 
 ## Installation
 
-### Voraussetzungen
+### Fertige Version (empfohlen für Vereine)
 
-- **Windows** (das Programm wurde für Windows entwickelt).
-- **[Java 24](https://www.oracle.com/java/technologies/downloads/)** oder neuer
-  muss installiert sein.
+Es gibt eine fertige Windows-Version mit **eingebautem Java – es muss kein Java
+installiert werden**. Sie liegt unter
+[Releases](https://github.com/manadhion/wettkampf_software/releases) als
+Installer bereit:
 
-### Herunterladen
+1. `Blasrohr-Wettkampf-Manager-<version>.exe` herunterladen und ausführen.
+2. Den Schritten folgen (Zielordner wählen, fertig).
 
-Das Repository als ZIP herunterladen (grüner **Code**-Button → *Download ZIP*)
-und entpacken – oder per Git klonen:
+Danach steht das Programm im **Startmenü** und auf dem **Desktop**. Die
+Installation braucht **keine Administratorrechte** (Installation pro Benutzer).
+Zum Entfernen: *Windows-Einstellungen → Apps → Blasrohr-Wettkampf-Manager →
+Deinstallieren*.
+
+### Aus dem Quellcode starten (für Entwickler)
+
+Voraussetzung: **Windows** und **[Java 24](https://www.oracle.com/java/technologies/downloads/)**
+oder neuer. Repository klonen (oder als ZIP über den grünen **Code**-Button
+herunterladen und entpacken):
 
 ```
 git clone https://github.com/manadhion/wettkampf_software.git
 ```
 
-### Starten
-
-Im entpackten Ordner:
+Im Ordner starten:
 
 ```
 .\mvnw.cmd javafx:run
@@ -125,6 +133,7 @@ laden. Der Name der aktiven Datenbank steht im Fenstertitel.
 | Datenhaltung   | SQLite (via `xerial sqlite-jdbc`)                      |
 | PDF-Erzeugung  | OpenPDF                                                 |
 | Build          | Maven (mit Wrapper), Java Platform Module System       |
+| Auslieferung   | eigenständige Windows-App via `jlink` + `jpackage`     |
 
 ### Architektur
 
@@ -188,6 +197,36 @@ Ergebnis: `target/reports/apidocs/index.html` im Browser öffnen.
 
 > `clean` nicht im selben Aufruf mitgeben (`clean javadoc:javadoc`) – das löscht
 > die frisch erzeugte Ausgabe gleich wieder.
+
+### Windows-Installer / .exe bauen
+
+Aus dem Projekt lässt sich eine eigenständige Windows-Anwendung mit
+eingebettetem Java erzeugen – der Zielrechner braucht dann kein installiertes
+Java. Ein Skript erledigt die ganze Kette (`mvn package` → Abhängigkeiten
+einsammeln → schlanke Laufzeit mit `jlink` → Verpacken mit `jpackage`):
+
+```
+powershell -ExecutionPolicy Bypass -File packaging\build-exe.ps1
+```
+
+Ergebnis: `dist\Blasrohr-Wettkampf-Manager-<version>.exe` (Installer mit
+Startmenü- und Desktop-Verknüpfung, Installation pro Benutzer ohne
+Administratorrechte).
+
+Statt eines Installers einen **portablen Ordner** bauen (kein WiX nötig, einfach
+entpacken und die `.exe` starten):
+
+```
+powershell -ExecutionPolicy Bypass -File packaging\build-exe.ps1 -Type app-image
+```
+
+Voraussetzungen:
+
+- **JDK 24** (`JAVA_HOME` gesetzt oder `java` im PATH) – liefert `jpackage`/`jlink`.
+- Nur für den Installer: **WiX-Toolset 3.14** (`candle.exe`/`light.exe`). Die
+  [portablen Binaries](https://github.com/wixtoolset/wix3/releases) nach
+  `%LOCALAPPDATA%\WiX314` entpacken – das Skript findet sie dort automatisch.
+- Das Anwendungs-Icon liegt unter `packaging\icon.ico`.
 
 ### Neue Bibliothek einbinden
 
