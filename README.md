@@ -40,21 +40,6 @@ kann.
   eigenen `.db`-Datei liegen; die zuletzt geöffnete wird beim nächsten Start
   automatisch wieder geladen.
 
-## Screenshots
-
-<!--
-Screenshots machen die README für Vereine und Recruiter deutlich anschaulicher.
-Bilder z. B. unter docs/screenshots/ ablegen und hier einbinden:
-
-![Hauptfenster](docs/screenshots/hauptfenster.png)
-![Beamer-Anzeige](docs/screenshots/beamer.png)
-![Saison-PDF](docs/screenshots/saison-pdf.png)
--->
-
-_Screenshots folgen._
-
----
-
 ## Installation
 
 ### Fertige Version (empfohlen für Vereine)
