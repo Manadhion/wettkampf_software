@@ -1,29 +1,161 @@
 # Blasrohr-Wettkampf-Manager
 
-## Voraussetzungen
+Eine Desktop-Anwendung zur Verwaltung von Blasrohr-Rundenwettkämpfen: Saisons,
+Ligen, Mannschaften und Schützen anlegen, Ergebnisse erfassen, Tabellen live
+berechnen, die Ergebnisse per Beamer anzeigen und die ganze Saison als PDF
+ausgeben.
 
-- [Java 24](https://www.oracle.com/java/technologies/downloads/) muss installiert sein
+Entstanden ist das Programm für den Wettkampfbetrieb im Blasrohrsport – es läuft
+lokal auf einem Windows-Rechner, braucht keine Internetverbindung und speichert
+alle Daten in einer einzigen Datenbankdatei, die man weitergeben oder sichern
+kann.
 
-## Projekt starten
+> **Für Vereine:** Alles Wichtige zum Installieren und Bedienen steht weiter
+> unten unter [Installation](#installation) und [Erste Schritte](#erste-schritte).
+>
+> **Für Entwickler/Recruiter:** Der technische Teil beginnt bei
+> [Technischer Überblick](#technischer-überblick).
+
+---
+
+## Funktionen
+
+- **Saison- und Wettkampftagverwaltung** – eine Saison enthält beliebig viele
+  Wettkampftage, jeder Tag mit Datum und ausrichtendem Verein.
+- **Stammdaten** – Ligen, Mannschaften, Schützen (mit Altersklasse) anlegen,
+  bearbeiten und löschen.
+- **Ergebniserfassung** – Ringzahl je Schütze und Wettkampftag eintragen.
+- **Automatische Wertung** – das Mannschaftsergebnis ist die Summe der besten
+  drei Schützen; je Begegnung gibt es 2 : 0 für die höhere Ringzahl bzw. 1 : 1
+  bei Gleichstand.
+- **Live-Tabelle** – die Mannschaftstabelle wird jederzeit aus allen erfassten
+  Begegnungen berechnet (sortiert nach Mannschaftspunkten, bei Gleichstand nach
+  Ringen).
+- **Beamer-Anzeige** – eine Vollbildansicht für den Wettkampfort, die
+  automatisch durch alle Ligen rotiert, die Einzelergebnisse durchscrollt und
+  eine Uhr zeigt.
+- **Saison-PDF** – Einzel- und Mannschaftsergebnisse jeder Liga bis zu einem
+  gewählten Wettkampftag als druckfertiges PDF im Querformat.
+- **Mehrere Datenbanken** – jede Saison bzw. jeder Wettkampf kann in einer
+  eigenen `.db`-Datei liegen; die zuletzt geöffnete wird beim nächsten Start
+  automatisch wieder geladen.
+
+## Screenshots
+
+<!--
+Screenshots machen die README für Vereine und Recruiter deutlich anschaulicher.
+Bilder z. B. unter docs/screenshots/ ablegen und hier einbinden:
+
+![Hauptfenster](docs/screenshots/hauptfenster.png)
+![Beamer-Anzeige](docs/screenshots/beamer.png)
+![Saison-PDF](docs/screenshots/saison-pdf.png)
+-->
+
+_Screenshots folgen._
+
+---
+
+## Installation
+
+### Voraussetzungen
+
+- **Windows** (das Programm wurde für Windows entwickelt).
+- **[Java 24](https://www.oracle.com/java/technologies/downloads/)** oder neuer
+  muss installiert sein.
+
+### Herunterladen
+
+Das Repository als ZIP herunterladen (grüner **Code**-Button → *Download ZIP*)
+und entpacken – oder per Git klonen:
+
+```
+git clone https://github.com/manadhion/wettkampf_software.git
+```
+
+### Starten
+
+Im entpackten Ordner:
 
 ```
 .\mvnw.cmd javafx:run
 ```
 
-> `mvn javafx:run` funktioniert nur wenn Maven manuell im PATH eingetragen ist.
-> Der Wrapper `.\mvnw.cmd` funktioniert immer.
+Der mitgelieferte Wrapper `.\mvnw.cmd` lädt beim ersten Start automatisch alles
+Nötige herunter und startet das Programm – eine separate Maven-Installation ist
+nicht erforderlich.
 
-## Projektstruktur
+> Auf macOS/Linux stattdessen `./mvnw javafx:run` verwenden.
+>
+> Der Aufruf `mvn javafx:run` funktioniert nur, wenn Maven manuell im PATH
+> eingetragen ist. Der Wrapper funktioniert immer.
+
+---
+
+## Erste Schritte
+
+1. **Beim ersten Start** fragt das Programm, ob eine neue Datenbank angelegt oder
+   eine vorhandene `.db`-Datei geöffnet werden soll. Für einen neuen Wettkampf:
+   *Neue Datenbank anlegen* und einen Speicherort wählen.
+2. **Saison anlegen** (oben links, `+` neben „Saison").
+3. **Wettkampftage** der Saison hinzufügen – jeweils mit Datum und ausrichtendem
+   Verein.
+4. **Ligen, Mannschaften und Schützen** anlegen und die Mannschaften ihren Ligen,
+   die Schützen ihren Mannschaften zuordnen.
+5. **Begegnungen** je Wettkampftag anlegen (Heim gegen Gegner).
+6. **Ergebnisse eintragen:** Wettkampftag, Mannschaft und Schütze wählen, die
+   Ringzahl eingeben und speichern. Die Begegnungsergebnisse aktualisieren sich
+   sofort.
+7. **Beamer-Anzeige starten** (Button oben links), sobald ein Wettkampftag
+   gewählt ist – ideal zur Live-Anzeige am Wettkampfort.
+8. **Saison-PDF …** erzeugt die Ergebnisübersicht bis zum gewählten Wettkampftag.
+
+Eine andere Datenbank lässt sich jederzeit über **Datei → Datenbank öffnen…**
+laden. Der Name der aktiven Datenbank steht im Fenstertitel.
+
+---
+
+## Technischer Überblick
+
+### Technologie-Stack
+
+| Bereich        | Verwendet                                              |
+|----------------|--------------------------------------------------------|
+| Sprache        | Java 24                                                |
+| Oberfläche     | JavaFX 21 (vollständig im Code aufgebaut, kein FXML)   |
+| Datenhaltung   | SQLite (via `xerial sqlite-jdbc`)                      |
+| PDF-Erzeugung  | OpenPDF                                                 |
+| Build          | Maven (mit Wrapper), Java Platform Module System       |
+
+### Architektur
+
+Die Anwendung ist in klar getrennte Schichten aufgeteilt. Die Oberfläche kennt
+nur den `Controller`, der `Controller` vermittelt zwischen Oberfläche und
+Datenbankzugriff – die Views greifen nie direkt auf die Datenbank zu.
+
+```
+view  ──►  app (Controller)  ──►  dao  ──►  SQLite
+             │
+             └─►  Fachlogik: MannschaftstabelleRechner, SaisonPdf
+```
+
+- **`data/`** – Entitäten (Saison, Wettkampftage, Liga, Mannschaft, Schuetze,
+  Begegnung, Ergebnisse, Altersklasse, TabellenZeile).
+- **`dao/`** – Data-Access-Objekte, gekapselter Zugriff auf die SQLite-Tabellen.
+- **`app/`** – `Controller` (Vermittler zwischen View und DAO), `DBController`
+  (aktive Datenbank), `MannschaftstabelleRechner` (Tabellenberechnung),
+  `SaisonPdf` (PDF-Export).
+- **`view/`** – JavaFX-Fenster (Hauptfenster, Formulare, Beamer-Vollbildansicht).
+
+Das Aussehen der Oberfläche kommt vollständig aus den `.css`-Dateien.
+
+### Projektstruktur
 
 ```
 src/main/java/io/github/manadhion/wettkampf/
-    data/    → Entitäten (Saison, Wettkampftage, Mannschaft, Schuetze,
-               Begegnung, Ergebnisse, Liga, Altersklasse, TabellenZeile)
-    dao/     → Data Access-Objekte, Zugriff auf die SQLite-Tabellen
-    app/     → Controller (verbindet view und dao), DBController,
-               MannschaftstabelleRechner
-    view/    → JavaFX-Fenster (Main = Hauptfenster, Formulare,
-               BeamerView, OwnAlert)
+    data/    → Entitäten
+    dao/     → Data-Access-Objekte (SQLite-Zugriff)
+    app/     → Controller, DBController, MannschaftstabelleRechner, SaisonPdf
+    view/    → JavaFX-Fenster (Main, Formulare, BeamerView, OwnAlert)
 
 src/main/resources/io/github/manadhion/wettkampf/view/
     style.css    → Aussehen der Hauptanwendung
@@ -33,13 +165,20 @@ src/main/java/module-info.java → Java-Moduldeklaration
 pom.xml                        → Abhängigkeiten und Build-Konfiguration
 ```
 
-Die Oberfläche wird vollständig im Java-Code aufgebaut (kein FXML), das
-Aussehen kommt aus den `.css`-Dateien.
+### Datenbank
 
-## Dokumentation erzeugen (Javadoc)
+Die Daten werden in einer SQLite-Datei (`.db`) gespeichert. Fehlende Tabellen
+werden beim Öffnen automatisch angelegt, sodass sowohl eine neue als auch eine
+bestehende Datei sofort nutzbar ist.
 
-Aus den Javadoc-Kommentaren im Code lässt sich eine durchsuchbare HTML-Dokumentation
-erzeugen:
+Welche Datenbank zuletzt verwendet wurde, merkt sich das Programm dauerhaft pro
+Windows-Benutzer in der Registry unter
+`HKEY_CURRENT_USER\Software\JavaSoft\Prefs\io\github\manadhion\wettkampf\app`.
+
+### Dokumentation erzeugen (Javadoc)
+
+Aus den Javadoc-Kommentaren im Code lässt sich eine durchsuchbare
+HTML-Dokumentation erzeugen:
 
 ```
 .\mvnw.cmd javadoc:javadoc
@@ -47,28 +186,17 @@ erzeugen:
 
 Ergebnis: `target/reports/apidocs/index.html` im Browser öffnen.
 
-> `clean` nicht im selben Aufruf mitgeben (`clean javadoc:javadoc`) – das löscht die
-> frisch erzeugte Ausgabe gleich wieder.
+> `clean` nicht im selben Aufruf mitgeben (`clean javadoc:javadoc`) – das löscht
+> die frisch erzeugte Ausgabe gleich wieder.
 
-## Datenbank
+### Neue Bibliothek einbinden
 
-Die Daten werden in einer SQLite-Datei (`.db`) gespeichert.
+1. Dependency in `pom.xml` unter `<dependencies>` eintragen.
+2. `requires <modulname>;` in `module-info.java` ergänzen.
 
-- **Erster Start:** Es erscheint die Auswahl, ob eine neue Datenbank angelegt oder eine
-  vorhandene `.db`-Datei geöffnet werden soll.
-- **Datenbank wechseln:** Über `Datei → Datenbank öffnen…` kann jederzeit eine andere
-  Datenbank geladen werden. Das Programm arbeitet direkt auf der gewählten Datei.
-- **Aktive Datenbank:** Der Dateiname der aktuell geöffneten Datenbank steht im Fenstertitel.
+---
 
-Welche Datenbank zuletzt verwendet wurde, merkt sich das Programm dauerhaft pro
-Windows-Benutzer in der Registry unter
-`HKEY_CURRENT_USER\Software\JavaSoft\Prefs\io\github\manadhion\wettkampf\app`.
+## Lizenz
 
-## Neue Bibliothek einbinden
-
-1. Dependency in `pom.xml` unter `<dependencies>` eintragen
-2. `requires <modulname>;` in `module-info.java` ergänzen
-
-## Entwicklungsnotizen
-
-<!-- Hier eigene Notizen eintragen -->
+Veröffentlicht unter der [MIT-Lizenz](LICENSE) – frei nutzbar, veränderbar und
+weitergebbar, auch von Vereinen.
