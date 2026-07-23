@@ -91,13 +91,13 @@ public class WettkampftageDAO {
     }
 
     /**
-     * Alle Wettkampftage holen.
+     * Alle Wettkampftage chronologisch nach Datum holen.
      * @return Liste aller Wettkampftage
      */
     public List<Wettkampftage> alleTage() {
         List<Wettkampftage> wettkampftage = new ArrayList<>();
 
-        String sql = "Select * FROM wettkampftage";
+        String sql = "Select * FROM wettkampftage ORDER BY datum";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();
@@ -119,14 +119,14 @@ public class WettkampftageDAO {
     }
 
     /**
-     * Alle Wettkampftage einer bestimmten Saison holen.
+     * Alle Wettkampftage einer bestimmten Saison chronologisch nach Datum holen.
      * @param saisonID id der Saison
      * @return Liste der Wettkampftage dieser Saison
      */
     public List<Wettkampftage> tageVonSaison(String saisonID) {
         List<Wettkampftage> wettkampftage = new ArrayList<>();
 
-        String sql = "SELECT * FROM wettkampftage WHERE saisonID = ?";
+        String sql = "SELECT * FROM wettkampftage WHERE saisonID = ? ORDER BY datum";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();

@@ -82,13 +82,13 @@ public class LigaDAO {
     }
 
     /**
-     * Alle Ligen holen.
+     * Alle Ligen alphabetisch nach Name holen.
      * @return Liste aller Ligen
      */
     public List<Liga> alleLigen() {
         List<Liga> ligen = new ArrayList<>();
 
-        String sql = "Select * FROM liga";
+        String sql = "Select * FROM liga ORDER BY name COLLATE NOCASE";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();

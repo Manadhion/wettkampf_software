@@ -82,13 +82,13 @@ public class AltersklasseDAO {
     }
 
     /**
-     * Alle Altersklassen holen.
+     * Alle Altersklassen alphabetisch nach Name holen.
      * @return Liste aller Altersklassen
      */
     public List<Altersklasse> alleAltersklassen() {
         List<Altersklasse> aKlassen = new ArrayList<>();
 
-        String sql = "Select * FROM altersklasse";
+        String sql = "Select * FROM altersklasse ORDER BY name COLLATE NOCASE";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();

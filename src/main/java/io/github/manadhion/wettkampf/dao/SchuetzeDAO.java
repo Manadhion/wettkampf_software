@@ -94,7 +94,7 @@ public class SchuetzeDAO {
     }
 
     /**
-     * Alle Schützen einer Mannschaft holen.
+     * Alle Schützen einer Mannschaft alphabetisch nach Vorname holen.
      * @param id id der Mannschaft
      * @return Liste der Schützen dieser Mannschaft
      */
@@ -102,7 +102,9 @@ public class SchuetzeDAO {
 
         List<Schuetze> schuetze = new ArrayList<>();
 
-        String sql = "SELECT * FROM schuetze WHERE mannschaftid=?";
+        //nach Vorname und dann Nachname sortiert, passend zur Anzeige "Vorname Nachname"
+        String sql = "SELECT * FROM schuetze WHERE mannschaftid=? "
+                + "ORDER BY vorname COLLATE NOCASE, nachname COLLATE NOCASE";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();

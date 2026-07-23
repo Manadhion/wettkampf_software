@@ -88,16 +88,17 @@ public class MannschaftDAO {
     }
 
     /**
-     * Alle Mannschaften holen, inklusive Liganame per JOIN für die Anzeige.
+     * Alle Mannschaften alphabetisch nach Name holen, inklusive Liganame per JOIN für die Anzeige.
      * @return Liste aller Mannschaften
      */
     public List<Mannschaft> alleMannschaften() {
 
         List<Mannschaft> mannschaften = new ArrayList<>();
 
-        //Liganame gleich per JOIN mitladen, damit die Anzeige keine eigene DB-Abfrage braucht
+        //Liganame gleich per JOIN mitladen, damit die Anzeige keine eigene DB-Abfrage braucht, nach Name sortiert für die Anzeige
         String sql = "SELECT m.id, m.name, m.klasse, l.name "
-                + "FROM mannschaft m LEFT JOIN liga l ON m.klasse = l.id";
+                + "FROM mannschaft m LEFT JOIN liga l ON m.klasse = l.id "
+                + "ORDER BY m.name COLLATE NOCASE";
 
         //Abrufen der Werte
 		try (Connection con = DBController.getConnection();
