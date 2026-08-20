@@ -195,6 +195,10 @@ public class SchuetzeView extends Stage {
                 }
             });
 
+        boolean keineAltersklasseAusgewaehlt = alterCombo.getSelectionModel().getSelectedItem() == null;
+        saMinusButton.setDisable(keineAltersklasseAusgewaehlt);
+        saEditButton.setDisable(keineAltersklasseAusgewaehlt);
+
 
         //ButtonBox
         HBox buttonBox = new HBox();
@@ -204,6 +208,15 @@ public class SchuetzeView extends Stage {
         //Button zum speichern
         Button speichern = new Button("speichern");
         speichern.setOnAction(event -> {
+
+            if (vNameField.getText().isBlank() || nNameField.getText().isBlank()) {
+                alert.errorAlert("Bitte Vorname und Nachname eingeben.");
+                return;
+            }
+            if (mannschaftCombo.getValue() == null || alterCombo.getValue() == null) {
+                alert.errorAlert("Bitte Mannschaft und Altersklasse auswählen.");
+                return;
+            }
 
             if (bearbeiten == null) {
                 controller.neuenSchuetzenpeichern(new Schuetze(vNameField.getText(), nNameField.getText(),
@@ -226,9 +239,14 @@ public class SchuetzeView extends Stage {
         abbrechen.setOnAction(event -> {
 			this.close();
 		});
+        if (bearbeiten != null) {
+            Button saisonZuordnung = new Button("Saisonzuordnung ändern");
+            saisonZuordnung.setOnAction(event -> new SaisonSchuetzeView().anzeigen(controller, bearbeiten));
+            buttonBox.getChildren().add(saisonZuordnung);
+        }
         buttonBox.getChildren().addAll(speichern, abbrechen);
 
-        Scene scene = new Scene(layout,510, 310); //Fenstereinstellungens-Parameter
+        Scene scene = new Scene(layout,560, 330); //Fenstereinstellungens-Parameter
 
         //style.css in dieses Fenster/Szene einbinden
         scene.getStylesheets().add(getClass().getResource("/io/github/manadhion/wettkampf/view/style.css").toExternalForm());

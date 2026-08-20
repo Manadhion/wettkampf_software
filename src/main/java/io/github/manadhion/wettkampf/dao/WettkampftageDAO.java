@@ -59,7 +59,7 @@ public class WettkampftageDAO {
 			ps.executeUpdate();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Wettkampftag konnte nicht gespeichert werden", e);
 		}
 
     }
@@ -85,7 +85,7 @@ public class WettkampftageDAO {
 			ps.executeUpdate();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Wettkampftag konnte nicht aktualisiert werden", e);
 		}
 
     }
@@ -112,7 +112,7 @@ public class WettkampftageDAO {
 			}
 			
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Wettkampftage konnten nicht geladen werden", e);
 		}
 
         return wettkampftage;
@@ -143,7 +143,7 @@ public class WettkampftageDAO {
 			}
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Wettkampftage der Saison konnten nicht geladen werden", e);
 		}
 
         return wettkampftage;
@@ -155,7 +155,9 @@ public class WettkampftageDAO {
      * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
      */
     public int delete(String id) {
-        String sql = "DELETE FROM wettkampftage WHERE id=?;";
+        String sql = "DELETE FROM wettkampftage WHERE id=? "
+                + "AND NOT EXISTS (SELECT 1 FROM begegnung WHERE wettkampftag=?) "
+                + "AND NOT EXISTS (SELECT 1 FROM ergebnisse WHERE wettkampftagID=?)";
 
         //return Statement
         int erg = 0;
@@ -163,10 +165,12 @@ public class WettkampftageDAO {
         //Löschvorgang
         try(Connection con = DBController.getConnection();
 				PreparedStatement ps = con.prepareStatement(sql)){
-			ps.setString(1, id);;
+			ps.setString(1, id);
+			ps.setString(2, id);
+			ps.setString(3, id);
 			erg = ps.executeUpdate();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Wettkampftag konnte nicht gelöscht werden", e);
 		}
 		
 		//wenn erg >0 ist war das Löschen erfolgreich

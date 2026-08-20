@@ -5,7 +5,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import io.github.manadhion.wettkampf.app.Controller;
 import io.github.manadhion.wettkampf.app.MannschaftstabelleRechner;
@@ -14,7 +16,7 @@ import io.github.manadhion.wettkampf.data.Ergebnisse;
 import io.github.manadhion.wettkampf.data.Liga;
 import io.github.manadhion.wettkampf.data.Mannschaft;
 import io.github.manadhion.wettkampf.data.Saison;
-import io.github.manadhion.wettkampf.data.Schuetze;
+import io.github.manadhion.wettkampf.data.SaisonSchuetze;
 import io.github.manadhion.wettkampf.data.TabellenZeile;
 import io.github.manadhion.wettkampf.data.Wettkampftage;
 import javafx.animation.Animation;
@@ -101,7 +103,7 @@ public class BeamerView extends Stage {
 
         this.tag = tag;
         this.saison = controller.saisonMitId(tag.getSaisonID()); //Saison aus dem Tag ableiten
-        this.ligen = controller.alleLigen();
+        this.ligen = controller.ligenVonSaison(tag.getSaisonID());
 
         setTitle("Beamer-Anzeige");
         initStyle(StageStyle.DECORATED); //kein Fensterrahmen UNDACORATED - zu Debugzwecken hier nur DECORATED
@@ -312,7 +314,8 @@ public class BeamerView extends Stage {
             Mannschaft gegner = controller.mannschaftMitID(b.getGegner());
 
             //nur Begegnungen dieser Liga anzeigen (beide Mannschaften sind in derselben Liga)
-            if (!heim.getKlasse().equals(liga.getId())) {
+            String begegnungsLiga = b.getLiga() == null ? heim.getKlasse() : b.getLiga();
+            if (!begegnungsLiga.equals(liga.getId())) {
                 continue;
             }
             gefunden = true;
@@ -322,13 +325,15 @@ public class BeamerView extends Stage {
             int gesamtGegner = controller.gesamtErgebnisBeste3(gegner.getId(), tag.getId());
 
             //eine Zeile je Begegnung: Heimmannschaft - Ergebnis : Ergebnis - Gegnermannschaft
-            Text heimText = new Text(heim.getName());
+            String heimName = b.getHeimName() == null ? heim.getName() : b.getHeimName();
+            String gegnerName = b.getGegnerName() == null ? gegner.getName() : b.getGegnerName();
+            Text heimText = new Text(heimName);
             heimText.getStyleClass().add("beamer-zeile"); //Aufrufname für die .css Datei
 
             Text ergebnisText = new Text("   " + gesamtHeim + " : " + gesamtGegner + "   ");
             ergebnisText.getStyleClass().add("beamer-zeile-ergebnis"); //Aufrufname für die .css Datei
 
-            Text gegnerText = new Text(gegner.getName());
+            Text gegnerText = new Text(gegnerName);
             gegnerText.getStyleClass().add("beamer-zeile"); //Aufrufname für die .css Datei
 
             HBox zeile = new HBox(heimText, ergebnisText, gegnerText);
@@ -362,22 +367,24 @@ public class BeamerView extends Stage {
         //alle Schützen der Liga sammeln, die an diesem Wettkampftag schon ein Ergebnis geschossen haben
         List<EinzelZeile> zeilen = new ArrayList<>();
         boolean ligaHatSchuetzen = false; //merkt sich, ob die Liga überhaupt Schützen hat
+        Set<String> mannschaftenDerLiga = mannschaftenDerLigaInSaison(liga);
         for (Mannschaft m : controller.alleMannschaften()) {
 
             //nur Mannschaften dieser Liga berücksichtigen
-            if (!m.getKlasse().equals(liga.getId())) {
+            if (!mannschaftenDerLiga.contains(m.getId())) {
                 continue;
             }
 
-            for (Schuetze s : controller.schuetzenVonMannschaft(m.getId())) {
+            for (SaisonSchuetze s : controller.saisonSchuetzenVonMannschaft(tag.getSaisonID(), m.getId())) {
                 ligaHatSchuetzen = true;
-                Ergebnisse e = controller.ergebnisFuer(s.getId(), tag.getId());
+                Ergebnisse e = controller.ergebnisFuer(s.getSchuetzeID(), tag.getId());
 
                 //Schützen ohne Ergebnis werden auf dem Beamer nicht angezeigt
                 if (e == null) {
                     continue;
                 }
-                zeilen.add(new EinzelZeile(s.getVorname() + " " + s.getNachname(), m.getName(), e.getErgebnis()));
+                zeilen.add(new EinzelZeile(s.getVorname() + " " + s.getNachname(),
+                        s.getMannschaftName(), e.getErgebnis()));
             }
         }
 
@@ -431,6 +438,22 @@ public class BeamerView extends Stage {
         einzelScrollPane = scroll;
         box.getChildren().add(scroll);
         return box;
+    }
+
+    //Mannschaften anhand der bei den Begegnungen gespeicherten historischen Liga bestimmen
+    private Set<String> mannschaftenDerLigaInSaison(Liga liga) {
+        Set<String> mannschaften = new HashSet<>();
+        for (Wettkampftage saisonTag : controller.wettkampftageVonSaison(tag.getSaisonID())) {
+            for (Begegnung b : controller.begegnungenAnDiesemTag(saisonTag.getId())) {
+                Mannschaft heim = controller.mannschaftMitID(b.getHeim());
+                String begegnungsLiga = b.getLiga() == null ? heim.getKlasse() : b.getLiga();
+                if (begegnungsLiga.equals(liga.getId())) {
+                    mannschaften.add(b.getHeim());
+                    mannschaften.add(b.getGegner());
+                }
+            }
+        }
+        return mannschaften;
     }
 
     //eine Kopf-Zelle der Tabelle

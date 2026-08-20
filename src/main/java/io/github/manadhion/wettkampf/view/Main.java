@@ -8,6 +8,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -18,6 +19,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
@@ -30,6 +32,7 @@ import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -87,6 +90,13 @@ public class Main extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
+
+        Thread.currentThread().setUncaughtExceptionHandler((thread, fehler) -> {
+            Throwable ursache = fehler;
+            while (ursache.getCause() != null) ursache = ursache.getCause();
+            String nachricht = ursache.getMessage() == null ? ursache.getClass().getSimpleName() : ursache.getMessage();
+            new OwnAlert().errorAlert("Datenbankvorgang fehlgeschlagen: " + nachricht);
+        });
 
         //beim ersten Start festlegen welche Datenbank verwendet wird
         datenbankFestlegen(primaryStage);
@@ -572,12 +582,26 @@ public class Main extends Application {
         rechts.getChildren().add(tagAnzeige);
 
 
-        Scene scene = (new Scene(top, 1300, 900)); //Fenstereinstellungens-Parameter
+        // Auf kleinen Bildschirmen bleibt das komplette Fenster inklusive Titelleiste erreichbar.
+        // Passt der Inhalt nicht vollstaendig hinein, kann er gescrollt werden.
+        ScrollPane scrollPane = new ScrollPane(top);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPannable(true);
+
+        Scene scene = new Scene(scrollPane);
 
         //style.css in dieses Fenster/Szene einbinden
         scene.getStylesheets().add(getClass().getResource("/io/github/manadhion/wettkampf/view/style.css").toExternalForm());
 
+        Rectangle2D arbeitsflaeche = Screen.getPrimary().getVisualBounds();
+        double fensterBreite = Math.min(1300, arbeitsflaeche.getWidth());
+        double fensterHoehe = Math.min(900, arbeitsflaeche.getHeight());
+
         primaryStage.setScene(scene);   //übernimmt Szene scene als Argument
+        primaryStage.setWidth(fensterBreite);
+        primaryStage.setHeight(fensterHoehe);
+        primaryStage.setX(arbeitsflaeche.getMinX() + (arbeitsflaeche.getWidth() - fensterBreite) / 2);
+        primaryStage.setY(arbeitsflaeche.getMinY() + (arbeitsflaeche.getHeight() - fensterHoehe) / 2);
 		primaryStage.show();            //öffnet das Fenster
 
     }
@@ -705,7 +729,17 @@ public class Main extends Application {
         }
 
         //Text in eine Zahl umwandeln (durch den Filter sind nur Ziffern möglich) und speichern
-        int wert = Integer.parseInt(ergebnisFeld.getText());
+        int wert;
+        try {
+            wert = Integer.parseInt(ergebnisFeld.getText());
+        } catch (NumberFormatException ex) {
+            new OwnAlert().errorAlert("Das Ergebnis ist keine gültige Zahl.");
+            return;
+        }
+        if (wert < 0 || wert > 600) {
+            new OwnAlert().errorAlert("Das Ergebnis muss zwischen 0 und 600 liegen.");
+            return;
+        }
         controller.ergebnisSpeichern(schuetze.getId(), tag.getId(), wert);
     }
 

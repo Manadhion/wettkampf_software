@@ -104,7 +104,7 @@ public class SaisonDAO {
 			}
 			
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Saisons konnten nicht geladen werden", e);
 		}
 
         return saison;
@@ -131,7 +131,7 @@ public class SaisonDAO {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Saison konnte nicht geladen werden", e);
         }
 
         return saison;
@@ -143,7 +143,9 @@ public class SaisonDAO {
      * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
      */
     public int delete(String id) {
-        String sql = "DELETE FROM saison WHERE id=?;";
+        String sql = "DELETE FROM saison WHERE id=? "
+                + "AND NOT EXISTS (SELECT 1 FROM wettkampftage WHERE saisonID=?) "
+                + "AND NOT EXISTS (SELECT 1 FROM saison_schuetze WHERE saisonID=?)";
 
         //return Statement
         int erg = 0;
@@ -151,10 +153,12 @@ public class SaisonDAO {
         //Löschvorgang
         try(Connection con = DBController.getConnection();
 				PreparedStatement ps = con.prepareStatement(sql)){
-			ps.setString(1, id);;
+			ps.setString(1, id);
+			ps.setString(2, id);
+			ps.setString(3, id);
 			erg = ps.executeUpdate();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Saison konnte nicht gelöscht werden", e);
 		}
 		
 		//wenn erg >0 ist war das Löschen erfolgreich

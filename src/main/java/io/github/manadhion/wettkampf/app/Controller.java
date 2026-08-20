@@ -7,6 +7,7 @@ import io.github.manadhion.wettkampf.dao.LigaDAO;
 import io.github.manadhion.wettkampf.dao.MannschaftDAO;
 import io.github.manadhion.wettkampf.dao.SaisonDAO;
 import io.github.manadhion.wettkampf.dao.SchuetzeDAO;
+import io.github.manadhion.wettkampf.dao.SaisonSchuetzeDAO;
 import io.github.manadhion.wettkampf.dao.WettkampftageDAO;
 import io.github.manadhion.wettkampf.view.AltersklasseView;
 import io.github.manadhion.wettkampf.view.BeamerView;
@@ -25,6 +26,7 @@ import io.github.manadhion.wettkampf.data.Liga;
 import io.github.manadhion.wettkampf.data.Mannschaft;
 import io.github.manadhion.wettkampf.data.Saison;
 import io.github.manadhion.wettkampf.data.Schuetze;
+import io.github.manadhion.wettkampf.data.SaisonSchuetze;
 import io.github.manadhion.wettkampf.data.Wettkampftage;
 import java.io.File;
 import java.util.List;
@@ -132,6 +134,7 @@ public class Controller {
         SaisonDAO saDAO = new SaisonDAO();
         LigaDAO lDAO = new LigaDAO();
         AltersklasseDAO aDAO = new AltersklasseDAO();
+        SaisonSchuetzeDAO ssDAO = new SaisonSchuetzeDAO();
         
         maDAO.createTableIfNotExists();
         bDAO.createTableIfNotExists();
@@ -141,6 +144,7 @@ public class Controller {
         saDAO.createTableIfNotExists();
         lDAO.createTableIfNotExists();
         aDAO.createTableIfNotExists();
+        ssDAO.createTableIfNotExists();
     }
 
     /**
@@ -262,6 +266,38 @@ public class Controller {
         return ligen;
     }
 
+    public List<Mannschaft> mannschaftenVonSaison(String saisonID) {
+        return new MannschaftDAO().mannschaftenVonSaison(saisonID);
+    }
+
+    /**
+     * Historische Schützenmeldungen einer Mannschaft in einer Saison abrufen.
+     */
+    public List<SaisonSchuetze> saisonSchuetzenVonMannschaft(String saisonID, String mannschaftID) {
+        return new SaisonSchuetzeDAO().schuetzenVonMannschaft(saisonID, mannschaftID);
+    }
+
+    public SaisonSchuetze saisonSchuetzeFinden(String saisonID, String schuetzeID) {
+        return new SaisonSchuetzeDAO().finde(saisonID, schuetzeID);
+    }
+
+    public void saisonSchuetzeSpeichern(SaisonSchuetze meldung) {
+        new SaisonSchuetzeDAO().speichern(meldung);
+    }
+
+    /**
+     * Alle in einer Saison verwendeten Ligen abrufen.
+     * @param saisonID id der Saison
+     * @return Ligen mit Begegnungen in dieser Saison
+     */
+    public List<Liga> ligenVonSaison(String saisonID) {
+        return new LigaDAO().ligenVonSaison(saisonID);
+    }
+
+    public int naechsteLigaRangfolge() {
+        return new LigaDAO().naechsteRangfolge();
+    }
+
     /**
      * Ergebnis speichern: neu anlegen wenn es noch keins gibt, sonst den Wert ändern.
      * @param schuetzeID id des Schützen
@@ -317,6 +353,10 @@ public class Controller {
         BegegnungDAO bDAO = new BegegnungDAO();
         List<Begegnung> begegnungen = bDAO.begegnungenAnDiesemTag(wettkampftag);
         return begegnungen;
+    }
+
+    public boolean begegnungExistiert(String tagID, String mannschaftA, String mannschaftB) {
+        return new BegegnungDAO().existiert(tagID, mannschaftA, mannschaftB);
     }
 
     /**

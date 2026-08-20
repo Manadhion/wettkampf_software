@@ -11,6 +11,15 @@ import javafx.scene.control.ButtonType;
  */
 public class OwnAlert {
 
+    public boolean saisonZuordnungBestaetigen(String saison) {
+        Alert bestaetigung = new Alert(AlertType.CONFIRMATION);
+        bestaetigung.setTitle("Saisonzuordnung ändern");
+        bestaetigung.setHeaderText("Saisonzuordnung für " + saison + " wirklich ändern?");
+        bestaetigung.setContentText("Dadurch können sich historische Tabellen, Beameranzeige und PDF ändern.");
+        Optional<ButtonType> result = bestaetigung.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
+    }
+
     /**
      * Informationshinweis anzeigen.
      * @param message anzuzeigender Hinweistext

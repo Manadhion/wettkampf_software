@@ -24,7 +24,14 @@ public class DBController {
      * @throws SQLException wenn die Verbindung nicht aufgebaut werden kann
      */
     public static Connection getConnection() throws SQLException{
-    	return DriverManager.getConnection("jdbc:sqlite:" + getDatenbankPfad());
+		Connection con = DriverManager.getConnection("jdbc:sqlite:" + getDatenbankPfad());
+        try (var stmt = con.createStatement()) {
+            stmt.execute("PRAGMA foreign_keys = ON");
+        } catch (SQLException e) {
+            con.close();
+            throw e;
+        }
+        return con;
     }
 
     /**

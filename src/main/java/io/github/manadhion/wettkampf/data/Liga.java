@@ -9,13 +9,15 @@ public class Liga {
 
     private String id;
     private String ligaName;
+    private int rangfolge;
 
     /**
      * Legt eine neue Liga mit frisch erzeugter id an.
      * @param ligaName Name der Liga
      */
-    public Liga (String ligaName) {
+    public Liga (String ligaName, int rangfolge) {
         this.ligaName = ligaName;
+        this.rangfolge = rangfolge;
 
         //id erzeugen
         id = UUID.randomUUID().toString();
@@ -28,8 +30,14 @@ public class Liga {
      */
     public Liga(String id, String ligaName) {
 
+        this(id, ligaName, 999);
+    }
+
+    public Liga(String id, String ligaName, int rangfolge) {
+
         this.id = id;
         this.ligaName = ligaName;
+        this.rangfolge = rangfolge;
     }
 
     public String getLigaName() {
@@ -43,6 +51,9 @@ public class Liga {
     public String getId() {
         return id;
     }
+
+    public int getRangfolge() { return rangfolge; }
+    public void setRangfolge(int rangfolge) { this.rangfolge = rangfolge; }
 
     /**
      * Anzeigetext für die ComboBox.
