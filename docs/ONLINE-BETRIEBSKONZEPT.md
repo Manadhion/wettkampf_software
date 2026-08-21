@@ -1,5 +1,11 @@
 # Konzept: Lokaler Sportleiterbetrieb und gemeinsame Vereinsdatenbank
 
+> **Umsetzungsstand:** Die erste Ausbaustufe dieses Konzepts wurde am
+> 21.08.2026 umgesetzt und auf dem Server bereitgestellt. Abweichungen zwischen
+> ursprünglicher Planung und tatsächlicher Implementierung sowie Bedienung,
+> Sicherheit, Migration und Offline-Notbetrieb beschreibt
+> [ONLINE-UMBAU-2026-08-21.md](ONLINE-UMBAU-2026-08-21.md).
+
 ## 1. Zweck dieses Dokuments
 
 Dieses Dokument beschreibt die geplante Erweiterung des

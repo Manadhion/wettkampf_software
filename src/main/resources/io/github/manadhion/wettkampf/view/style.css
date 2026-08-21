@@ -10,6 +10,16 @@
     -fx-background-color: #ffffff;
 }
 
+.offline-hinweis {
+    -fx-background-color: #b91c1c;
+    -fx-text-fill: white;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 18;
+    -fx-alignment: center;
+}
+
 /* Hover/geöffnetes Menü */
 .menu-bar .menu:hover,
 .menu-bar .menu:showing {

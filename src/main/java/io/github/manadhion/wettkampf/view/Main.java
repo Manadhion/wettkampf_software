@@ -16,6 +16,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -44,6 +45,11 @@ import java.util.function.UnaryOperator;
 
 import io.github.manadhion.wettkampf.app.Controller;
 import io.github.manadhion.wettkampf.app.DBController;
+import io.github.manadhion.wettkampf.app.Anwendungskonfiguration;
+import io.github.manadhion.wettkampf.app.Betriebsart;
+import io.github.manadhion.wettkampf.app.DatenServiceFabrik;
+import io.github.manadhion.wettkampf.app.OnlineWettkampfDatenService;
+import io.github.manadhion.wettkampf.app.WettkampfDatenService;
 import io.github.manadhion.wettkampf.data.Begegnung;
 import io.github.manadhion.wettkampf.data.Ergebnisse;
 import io.github.manadhion.wettkampf.data.Mannschaft;
@@ -60,7 +66,8 @@ public class Main extends Application {
     private static final DateTimeFormatter DATUM_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     //Controller-Objekt erzeugen
-    private Controller controller = new Controller(this);
+    private Controller controller;
+    private WettkampfDatenService datenService;
 
     //GUI-Elemente als Felder, damit auch die Methoden außerhalb von start  sie sehen
     private ComboBox<Saison> saisonCombo;
@@ -75,6 +82,7 @@ public class Main extends Application {
     private Button begegnungButton;
     private Button beamerButton = new Button("Beamer-Anzeige starten");
     private Button pdfButton = new Button("Saison-PDF …");
+    private Label offlineHinweis;
 
     /**
      * Einstiegspunkt, erzeugt eine Instanz und startet die Methode start aus der App-Klasse.
@@ -98,8 +106,16 @@ public class Main extends Application {
             new OwnAlert().errorAlert("Datenbankvorgang fehlgeschlagen: " + nachricht);
         });
 
-        //beim ersten Start festlegen welche Datenbank verwendet wird
-        datenbankFestlegen(primaryStage);
+        // Dialoge benötigen auch vor dem Anzeigen des Hauptfensters eine Scene am Besitzer.
+        primaryStage.setScene(new Scene(new VBox()));
+
+        // Lokal arbeitet der Sportleiter ohne Anmeldung; nur online wird ein Zugang abgefragt.
+        datenService = datenServiceFestlegen(primaryStage);
+        if (datenService == null) {
+            Platform.exit();
+            return;
+        }
+        controller = new Controller(this, datenService);
 
         //Tabellen anlegen wenn sie noch nicht existieren
         controller.createTableIfNotExists();
@@ -115,17 +131,35 @@ public class Main extends Application {
 		MenuBar menuBar = new MenuBar();
 		Menu fileMenu = new Menu("Datei");              //Register Datei
 		MenuItem dbOeffnenItem = new MenuItem("Datenbank öffnen…"); //andere Datenbank laden
+		dbOeffnenItem.setDisable(Anwendungskonfiguration.getBetriebsart()
+				.orElse(Betriebsart.SPORTLEITER) == Betriebsart.ONLINE);
 		dbOeffnenItem.setOnAction(event -> {
 			datenbankWechseln(primaryStage);
 		});
 		MenuItem exitItem = new MenuItem("Beenden");    //Programm beenden Auswahl
 		exitItem.setOnAction(event -> {
-			Platform.exit();
+			primaryStage.close();
 		});
 		fileMenu.getItems().add(dbOeffnenItem);
 		fileMenu.getItems().add(exitItem);
 		menuBar.getMenus().add(fileMenu);
 		top.getChildren().add(menuBar);
+
+        offlineHinweis = new Label();
+        offlineHinweis.getStyleClass().add("offline-hinweis");
+        offlineHinweis.setWrapText(true);
+        offlineHinweis.setMaxWidth(Double.MAX_VALUE);
+        offlineHinweis.setVisible(false);
+        offlineHinweis.setManaged(false);
+        top.getChildren().add(offlineHinweis);
+
+        if (datenService instanceof OnlineWettkampfDatenService online) {
+            online.statusListenerHinzufuegen(status ->
+                    Platform.runLater(() -> onlineStatusAnzeigen(status)));
+            primaryStage.setOnCloseRequest(event -> {
+                if (!beendenBestaetigt()) event.consume();
+            });
+        }
 
         //Überschrift
         Text ueberschrift = new Text("Blasrohr - Wettkampf - Manager");
@@ -606,11 +640,84 @@ public class Main extends Application {
 
     }
 
-    //beim ersten Start festlegen welche Datenbank verwendet wird
+    @Override
+    public void stop() {
+        if (datenService instanceof OnlineWettkampfDatenService online) {
+            online.close();
+        }
+    }
+
+    private void onlineStatusAnzeigen(OnlineWettkampfDatenService.OnlineStatus status) {
+        boolean warnung = !status.verbunden() || status.synchronisationsfehler() != null;
+        offlineHinweis.setVisible(warnung);
+        offlineHinweis.setManaged(warnung);
+        if (!warnung) return;
+
+        long anzahl = status.ausstehendeAenderungen();
+        if (status.synchronisationsfehler() != null) {
+            offlineHinweis.setText("SYNCHRONISATION FEHLGESCHLAGEN – "
+                    + status.synchronisationsfehler() + " – " + aenderungsText(anzahl));
+        } else {
+            offlineHinweis.setText("OFFLINE-NOTBETRIEB – Keine Verbindung zum Server. "
+                    + aenderungsText(anzahl)
+                    + " Die Daten gehen verloren, wenn das Programm vor der Synchronisation beendet wird.");
+        }
+    }
+
+    private String aenderungsText(long anzahl) {
+        if (anzahl == 0) return "Neue Änderungen werden nur temporär gespeichert.";
+        return anzahl + (anzahl == 1 ? " Änderung ist" : " Änderungen sind")
+                + " noch nicht mit dem Server synchronisiert.";
+    }
+
+    private boolean beendenBestaetigt() {
+        if (!(datenService instanceof OnlineWettkampfDatenService online)
+                || !online.hatNichtSynchronisierteAenderungen()) {
+            return true;
+        }
+        ButtonType trotzdem = new ButtonType("Trotzdem beenden");
+        Alert warnung = new Alert(AlertType.WARNING, "", trotzdem, ButtonType.CANCEL);
+        warnung.setTitle("Nicht synchronisierte Änderungen");
+        warnung.setHeaderText("Beim Beenden gehen die temporären Änderungen verloren.");
+        warnung.setContentText("Die Verbindung zum Server ist noch nicht wiederhergestellt oder die "
+                + "Synchronisation ist noch nicht abgeschlossen.");
+        return warnung.showAndWait().filter(trotzdem::equals).isPresent();
+    }
+
+    private WettkampfDatenService datenServiceFestlegen(Stage primaryStage) {
+        ButtonType lokalButton = new ButtonType("Sportleiter – lokal");
+        ButtonType onlineButton = new ButtonType("Online-Datenbank");
+        Alert auswahl = new Alert(AlertType.CONFIRMATION, "", lokalButton, onlineButton,
+                ButtonType.CANCEL);
+        auswahl.initOwner(primaryStage);
+        auswahl.setTitle("Betriebsart");
+        auswahl.setHeaderText("Womit möchten Sie arbeiten?");
+        Optional<ButtonType> wahl = auswahl.showAndWait();
+
+        if (wahl.isEmpty() || wahl.get() == ButtonType.CANCEL) {
+            return null;
+        }
+        if (wahl.get() == onlineButton) {
+            Optional<OnlineWettkampfDatenService> online =
+                    OnlineAnmeldungDialog.anzeigen(primaryStage);
+            if (online.isEmpty()) {
+                return null;
+            }
+            Anwendungskonfiguration.setBetriebsart(Betriebsart.ONLINE);
+            return online.get();
+        }
+
+        Anwendungskonfiguration.setBetriebsart(Betriebsart.SPORTLEITER);
+        datenbankFestlegen(primaryStage);
+        return DatenServiceFabrik.erstellen(Betriebsart.SPORTLEITER);
+    }
+
+    //beim ersten lokalen Start festlegen welche Datenbank verwendet wird
     private void datenbankFestlegen(Stage primaryStage) {
 
         //ist schon eine Datenbank festgelegt, kann sie direkt weiterverwendet werden
         if (DBController.hatDatenbank()) {
+            Anwendungskonfiguration.setBetriebsart(Betriebsart.SPORTLEITER);
             return;
         }
 
@@ -634,6 +741,7 @@ public class Main extends Application {
         if (!DBController.hatDatenbank()) {
             DBController.setDatenbankPfad(System.getProperty("user.home") + "/wettkampf_db.db");
         }
+        Anwendungskonfiguration.setBetriebsart(Betriebsart.SPORTLEITER);
     }
 
     //eine Datenbank-Datei auswählen und als aktive Datenbank merken, gibt zurück ob eine gewählt wurde
@@ -657,6 +765,7 @@ public class Main extends Application {
         }
 
         DBController.setDatenbankPfad(datei.getAbsolutePath());
+        Anwendungskonfiguration.setBetriebsart(Betriebsart.SPORTLEITER);
         return true;
     }
 
@@ -679,8 +788,13 @@ public class Main extends Application {
 
     //Fenstertitel auf die aktuell geöffnete Datenbank setzen
     private void titelAktualisieren(Stage primaryStage) {
+        if (Anwendungskonfiguration.getBetriebsart().orElse(Betriebsart.SPORTLEITER)
+                == Betriebsart.ONLINE) {
+            primaryStage.setTitle("Blasrohr-Wettkampf-Manager — Online-Datenbank");
+            return;
+        }
         String dateiname = new File(DBController.getDatenbankPfad()).getName();
-        primaryStage.setTitle("Blasrohr-Wettkampf-Manager — " + dateiname);
+        primaryStage.setTitle("Blasrohr-Wettkampf-Manager — Sportleiter — " + dateiname);
     }
 
     //Ergebnisfeld je nach Auswahl füllen und sperren bzw. freigeben

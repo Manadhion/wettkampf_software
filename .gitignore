@@ -20,6 +20,7 @@ dist/
 
 # Nur lokal benötigte Betriebs- und Zugangsdaten
 *.local.md
+server/.env
 
 # Betriebssystem
 Thumbs.db

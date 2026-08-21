@@ -5,10 +5,10 @@ Ligen, Mannschaften und Schützen anlegen, Ergebnisse erfassen, Tabellen live
 berechnen, die Ergebnisse per Beamer anzeigen und die ganze Saison als PDF
 ausgeben.
 
-Entstanden ist das Programm für den Wettkampfbetrieb im Blasrohrsport – es läuft
-lokal auf einem Windows-Rechner, braucht keine Internetverbindung und speichert
-alle Daten in einer einzigen Datenbankdatei, die man weitergeben oder sichern
-kann.
+Entstanden ist das Programm für den Wettkampfbetrieb im Blasrohrsport. Es kann
+wahlweise mit einer lokalen SQLite-Datei des Sportleiters oder mit einer
+gemeinsamen Online-Datenbank für die Vereine arbeiten. Beide Datenbestände sind
+fachlich und technisch voneinander getrennt.
 
 > **Für Vereine:** Alles Wichtige zum Installieren und Bedienen steht weiter
 > unten unter [Installation](#installation) und [Erste Schritte](#erste-schritte).
@@ -39,6 +39,11 @@ kann.
 - **Mehrere Datenbanken** – jede Saison bzw. jeder Wettkampf kann in einer
   eigenen `.db`-Datei liegen; die zuletzt geöffnete wird beim nächsten Start
   automatisch wieder geladen.
+- **Zwei Betriebsarten** – der Sportleiter arbeitet ohne Anmeldung lokal; die
+  Vereine melden sich an der gemeinsamen Online-Datenbank an.
+- **Offline-Notbetrieb** – fällt das Internet erst während des Onlinebetriebs
+  aus, kann vorübergehend weitergearbeitet werden. Eine rote Warnung bleibt bis
+  zur automatischen Synchronisation sichtbar.
 
 ## Installation
 
@@ -86,9 +91,12 @@ nicht erforderlich.
 
 ## Erste Schritte
 
-1. **Beim ersten Start** fragt das Programm, ob eine neue Datenbank angelegt oder
-   eine vorhandene `.db`-Datei geöffnet werden soll. Für einen neuen Wettkampf:
-   *Neue Datenbank anlegen* und einen Speicherort wählen.
+1. **Beim Start** die Betriebsart wählen:
+   - *Sportleiter – lokal*: anschließend eine vorhandene `.db`-Datei öffnen
+     oder eine neue Datenbank anlegen. Dafür wird kein Passwort benötigt.
+   - *Online-Datenbank*: mit der gemeinsamen Online-Kennung und dem
+     Online-Passwort anmelden. Die Serveradresse ist bereits im Programm
+     hinterlegt.
 2. **Saison anlegen** (oben links, `+` neben „Saison").
 3. **Wettkampftage** der Saison hinzufügen – jeweils mit Datum und ausrichtendem
    Verein.
@@ -103,7 +111,14 @@ nicht erforderlich.
 8. **Saison-PDF …** erzeugt die Ergebnisübersicht bis zum gewählten Wettkampftag.
 
 Eine andere Datenbank lässt sich jederzeit über **Datei → Datenbank öffnen…**
-laden. Der Name der aktiven Datenbank steht im Fenstertitel.
+laden. Das gilt ausschließlich für den lokalen Sportleiterbetrieb. Die aktive
+Betriebsart steht im Fenstertitel.
+
+Für den Start des Onlinebetriebs wird eine Internetverbindung benötigt. Fällt
+die Verbindung später aus, speichert das Programm Änderungen nur im
+Arbeitsspeicher. Nach der Wiederverbindung werden sie automatisch übertragen.
+Das Programm darf nicht beendet werden, solange die rote Warnung auf noch nicht
+synchronisierte Änderungen hinweist.
 
 ---
 
@@ -115,7 +130,8 @@ laden. Der Name der aktiven Datenbank steht im Fenstertitel.
 |----------------|--------------------------------------------------------|
 | Sprache        | Java 24                                                |
 | Oberfläche     | JavaFX 21 (vollständig im Code aufgebaut, kein FXML)   |
-| Datenhaltung   | SQLite (via `xerial sqlite-jdbc`)                      |
+| Datenhaltung   | lokal SQLite; online PostgreSQL über HTTPS-REST-API    |
+| Server         | Spring Boot, Flyway, PostgreSQL und Docker Compose     |
 | PDF-Erzeugung  | OpenPDF                                                 |
 | Build          | Maven (mit Wrapper), Java Platform Module System       |
 | Auslieferung   | eigenständige Windows-App via `jlink` + `jpackage`     |
@@ -123,22 +139,25 @@ laden. Der Name der aktiven Datenbank steht im Fenstertitel.
 ### Architektur
 
 Die Anwendung ist in klar getrennte Schichten aufgeteilt. Die Oberfläche kennt
-nur den `Controller`, der `Controller` vermittelt zwischen Oberfläche und
-Datenbankzugriff – die Views greifen nie direkt auf die Datenbank zu.
+nur den `Controller`; dieser verwendet einen austauschbaren
+`WettkampfDatenService`. Die Views greifen nie direkt auf DAOs, Datenbanken oder
+die HTTP-API zu.
 
 ```
-view  ──►  app (Controller)  ──►  dao  ──►  SQLite
-             │
-             └─►  Fachlogik: MannschaftstabelleRechner, SaisonPdf
+view ──► app (Controller) ──► WettkampfDatenService
+                                  ├─► Lokaler Service ──► dao ──► SQLite
+                                  └─► Online-Service ──► HTTPS ──► Server/API
+                                                                      └─► PostgreSQL
 ```
 
 - **`data/`** – Entitäten (Saison, Wettkampftage, Liga, Mannschaft, Schuetze,
   Begegnung, Ergebnisse, Altersklasse, TabellenZeile).
 - **`dao/`** – Data-Access-Objekte, gekapselter Zugriff auf die SQLite-Tabellen.
-- **`app/`** – `Controller` (Vermittler zwischen View und DAO), `DBController`
-  (aktive Datenbank), `MannschaftstabelleRechner` (Tabellenberechnung),
-  `SaisonPdf` (PDF-Export).
+- **`app/`** – `Controller`, lokaler und Online-Datenservice, HTTP-Client,
+  Konfiguration, `MannschaftstabelleRechner` und `SaisonPdf`.
 - **`view/`** – JavaFX-Fenster (Hauptfenster, Formulare, Beamer-Vollbildansicht).
+- **`server/`** – eigenständige Spring-Boot-API, Flyway-Migrationen,
+  PostgreSQL- und Docker-Compose-Konfiguration.
 
 Das Aussehen der Oberfläche kommt vollständig aus den `.css`-Dateien.
 
@@ -161,13 +180,26 @@ pom.xml                        → Abhängigkeiten und Build-Konfiguration
 
 ### Datenbank
 
-Die Daten werden in einer SQLite-Datei (`.db`) gespeichert. Fehlende Tabellen
-werden beim Öffnen automatisch angelegt, sodass sowohl eine neue als auch eine
-bestehende Datei sofort nutzbar ist.
+Im lokalen Modus werden die Daten in einer SQLite-Datei (`.db`) gespeichert.
+Fehlende Tabellen werden beim Öffnen automatisch angelegt. Im Online-Modus
+kommuniziert das Programm ausschließlich per HTTPS mit der Server-API; es
+enthält keine PostgreSQL-Zugangsdaten.
 
 Welche Datenbank zuletzt verwendet wurde, merkt sich das Programm dauerhaft pro
 Windows-Benutzer in der Registry unter
 `HKEY_CURRENT_USER\Software\JavaSoft\Prefs\io\github\manadhion\wettkampf\app`.
+
+Die Online-Kennung und das Online-Passwort werden nach erfolgreicher Anmeldung
+in `%APPDATA%\Wettkampf\online.properties` gespeichert und beim nächsten Start
+vorausgefüllt. Das Passwort ist mit Windows-DPAPI an den jeweiligen
+Windows-Benutzer gebunden und liegt dort nicht im Klartext vor.
+
+Ausführliche Dokumentation:
+
+- [Umsetzungsstand vom 21.08.2026](docs/ONLINE-UMBAU-2026-08-21.md)
+- [Online-Betriebskonzept](docs/ONLINE-BETRIEBSKONZEPT.md)
+- [API-Vertrag](docs/API-VERTRAG-V1.md)
+- [Serverentwicklung und Docker-Betrieb](server/README.md)
 
 ### Dokumentation erzeugen (Javadoc)
 

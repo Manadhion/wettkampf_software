@@ -20,6 +20,11 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.49.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna-platform</artifactId>
+            <version>5.19.1</version>
+        </dependency>
         <!-- PDF-Erzeugung für den Saison-Export -->
         <dependency>
             <groupId>com.github.librepdf</groupId>

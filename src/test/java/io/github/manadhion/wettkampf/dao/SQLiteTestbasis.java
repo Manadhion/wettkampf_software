@@ -2,6 +2,7 @@ package io.github.manadhion.wettkampf.dao;
 
 import io.github.manadhion.wettkampf.app.Controller;
 import io.github.manadhion.wettkampf.app.DBController;
+import io.github.manadhion.wettkampf.app.LokalerWettkampfDatenService;
 import java.nio.file.Path;
 import java.util.prefs.Preferences;
 import org.junit.jupiter.api.AfterEach;
@@ -34,7 +35,7 @@ abstract class SQLiteTestbasis {
     Path neueTestdatenbank(String dateiname) {
         Path datenbank = temporaererOrdner.resolve(dateiname);
         DBController.setDatenbankPfad(datenbank.toString());
-        new Controller().createTableIfNotExists();
+        new Controller(new LokalerWettkampfDatenService()).createTableIfNotExists();
         return datenbank;
     }
 }

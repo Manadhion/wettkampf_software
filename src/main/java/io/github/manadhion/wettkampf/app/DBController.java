@@ -3,18 +3,11 @@ package io.github.manadhion.wettkampf.app;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.prefs.Preferences;
 
 /**
  * Baut Verbindungen zur SQLite-Datenbank auf und verwaltet den dauerhaft gespeicherten Pfad zur aktiven Datenbank.
  */
 public class DBController {
-
-    //Schlüssel unter dem der Pfad zur aktiven Datenbank dauerhaft gespeichert wird
-    private static final String PFAD_SCHLUESSEL = "datenbankPfad";
-
-    //dauerhafter Speicher für Programmeinstellungen, hält den Pfad zur aktiven Datenbank
-    private static final Preferences EINSTELLUNGEN = Preferences.userNodeForPackage(DBController.class);
 
     private DBController() {} //es kann keine Instanz erstellt werden - private
 
@@ -39,7 +32,7 @@ public class DBController {
      * @return true wenn ein Pfad zur Datenbank gespeichert ist
      */
     public static boolean hatDatenbank() {
-        return EINSTELLUNGEN.get(PFAD_SCHLUESSEL, null) != null;
+        return Anwendungskonfiguration.getSportleiterDatenbankPfad().isPresent();
     }
 
     /**
@@ -47,7 +40,7 @@ public class DBController {
      * @return Pfad zur Datenbank, oder null wenn keiner festgelegt ist
      */
     public static String getDatenbankPfad() {
-        return EINSTELLUNGEN.get(PFAD_SCHLUESSEL, null);
+        return Anwendungskonfiguration.getSportleiterDatenbankPfad().orElse(null);
     }
 
     /**
@@ -55,7 +48,7 @@ public class DBController {
      * @param pfad Pfad zur Datenbank-Datei
      */
     public static void setDatenbankPfad(String pfad) {
-        EINSTELLUNGEN.put(PFAD_SCHLUESSEL, pfad);
+        Anwendungskonfiguration.setSportleiterDatenbankPfad(pfad);
     }
 
 }
