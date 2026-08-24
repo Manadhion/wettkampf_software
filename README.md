@@ -57,6 +57,11 @@ Installer bereit:
 1. `Blasrohr-Wettkampf-Manager-<version>.exe` herunterladen und ausführen.
 2. Den Schritten folgen (Zielordner wählen, fertig).
 
+Da der kostenlose Installer derzeit nicht digital signiert ist, kann Windows
+beim ersten Start eine Schutzmeldung anzeigen. Die bebilderungsunabhängigen
+Schritte zum sicheren Download und zum Start stehen in der
+[Installationsanleitung für Windows](docs/INSTALLATION-WINDOWS.md).
+
 Danach steht das Programm im **Startmenü** und auf dem **Desktop**. Die
 Installation braucht **keine Administratorrechte** (Installation pro Benutzer).
 Zum Entfernen: *Windows-Einstellungen → Apps → Blasrohr-Wettkampf-Manager →
@@ -261,10 +266,7 @@ Voraussetzungen:
 Veröffentlicht unter der [MIT-Lizenz](LICENSE) – frei nutzbar, veränderbar und
 weitergebbar, auch von Vereinen.
 
-## Signatur und Datenschutz
+## Sicherheit und Datenschutz
 
-- [Code signing policy](CODE-SIGNING-POLICY.md)
+- [Hinweise zur derzeit fehlenden Codesignatur](CODE-SIGNING-POLICY.md)
 - [Datenschutzinformation](PRIVACY.md)
-- [Technische SignPath-Einrichtung](docs/SIGNPATH-EINRICHTUNG.md)
-
-Free code signing provided by SignPath.io, certificate by SignPath Foundation.

@@ -1,23 +1,24 @@
-# Code signing policy
+# Hinweise zur Codesignatur
 
 ## Projekt und Geltungsbereich
 
-Diese Richtlinie gilt für den Blasrohr-Wettkampf-Manager und das öffentliche
-Repository <https://github.com/Manadhion/wettkampf_software>. Signiert werden
-ausschließlich Windows-Installer, die aus dem Quellcode dieses Repositorys
-erzeugt wurden.
+Diese Hinweise gelten für den Blasrohr-Wettkampf-Manager und das öffentliche
+Repository <https://github.com/Manadhion/wettkampf_software>.
 
-Free code signing provided by SignPath.io, certificate by SignPath Foundation.
+Die derzeit auf GitHub veröffentlichten Windows-Installer sind **nicht digital
+signiert**. Deshalb kann Windows beim Herunterladen oder beim ersten Start eine
+SmartScreen-Warnung anzeigen. Eine selbst signierte Datei würde diese Warnung
+auf fremden Rechnern nicht zuverlässig verhindern und wird daher nicht als
+vermeintliche Vertrauenslösung eingesetzt.
 
 ## Verantwortlichkeiten
 
 - Committer und Reviewer: [Benjamin Schneider / Manadhion](https://github.com/Manadhion)
-- Freigabeberechtigter für Signaturanfragen: [Benjamin Schneider / Manadhion](https://github.com/Manadhion)
+- Freigabeberechtigter für Veröffentlichungen: [Benjamin Schneider / Manadhion](https://github.com/Manadhion)
 
 Beiträge von Personen ohne direkten Schreibzugriff werden vor der Übernahme
-geprüft. Änderungen an Build-, Release- und Signaturabläufen werden besonders
-sorgfältig kontrolliert. Für GitHub und SignPath wird Mehrfaktor-Authentisierung
-verwendet.
+geprüft. Änderungen an Build- und Releaseabläufen werden besonders sorgfältig
+kontrolliert. Für GitHub wird Mehrfaktor-Authentisierung verwendet.
 
 ## Build- und Freigabeprozess
 
@@ -25,14 +26,15 @@ verwendet.
 2. Der Windows-Installer wird auf einem von GitHub gehosteten Windows-Runner mit
    dem eingecheckten Skript `packaging/build-exe.ps1` erzeugt.
 3. Projektversion, Git-Tag und Installer-Version müssen übereinstimmen.
-4. Das von GitHub Actions gespeicherte Artefakt wird nach der Aufnahme des
-   Projekts bei SignPath über dessen GitHub-Integration eingereicht.
-5. Jede Release-Signatur wird manuell durch den Freigabeberechtigten bestätigt.
-6. Nur das von SignPath zurückgelieferte Artefakt wird als GitHub-Release
+4. Der erfolgreiche GitHub-Actions-Build wird kontrolliert. Anschließend wird
+   dessen Artefakt bewusst als unsignierter Installer im GitHub-Release
    veröffentlicht.
+5. Der SHA-256-Prüfwert des veröffentlichten Installers wird in den
+   Release-Hinweisen angegeben.
 
-Private Schlüssel werden weder lokal gespeichert noch in GitHub hinterlegt.
-SignPath verwaltet den Schlüssel in seiner gesicherten Signaturumgebung.
+Falls später eine vertrauenswürdige Codesignatur eingeführt wird, werden diese
+Hinweise und der Buildprozess vor der ersten signierten Veröffentlichung
+aktualisiert. Bereits veröffentlichte Dateien werden nicht nachträglich ersetzt.
 
 ## Datenschutz und Sicherheit
 
