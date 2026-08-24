@@ -125,6 +125,16 @@ public class WTagView extends Stage {
                 return;
             }
 
+            if (vereinField.getText().isBlank()) {
+                alert.errorAlert("Bitte einen Ausrichterverein eingeben!");
+                return;
+            }
+
+            if (saisonCombo.getValue() == null) {
+                alert.errorAlert("Bitte eine Saison auswählen!");
+                return;
+            }
+
             String saisonID = saisonCombo.getSelectionModel().getSelectedItem().getId();
 
             if (bearbeiten == null) {

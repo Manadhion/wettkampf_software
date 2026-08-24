@@ -21,12 +21,19 @@ public class ErgebnisseDAO {
                 + "id TEXT PRIMARY KEY,"
                 + "schuetzeID TEXT REFERENCES schuetze(id) NOT NULL,"            //Referenz zur id des Schützen um dessen Ergebnis es geht
                 + "wettkampftagID TEXT REFERENCES wettkampftage(id) NOT NULL,"   //id zum Wettkampftag an dem das Ergebnis geschossen wurde
-                + "ergebnis INTEGER NOT NULL"
+                + "ergebnis INTEGER NOT NULL CHECK(ergebnis BETWEEN 0 AND 600),"
+                + "UNIQUE(schuetzeID, wettkampftagID)"
                 + ")";
         
         try (Connection con = DBController.getConnection();
             Statement stmt = con.createStatement()) {
                 stmt.execute(sql);
+                stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS ux_ergebnis_schuetze_tag "
+                        + "ON ergebnisse(schuetzeID,wettkampftagID)");
+                stmt.execute("CREATE TRIGGER IF NOT EXISTS trg_ergebnis_bereich_insert BEFORE INSERT ON ergebnisse "
+                        + "WHEN NEW.ergebnis<0 OR NEW.ergebnis>600 BEGIN SELECT RAISE(ABORT,'Ergebnis muss zwischen 0 und 600 liegen'); END");
+                stmt.execute("CREATE TRIGGER IF NOT EXISTS trg_ergebnis_bereich_update BEFORE UPDATE OF ergebnis ON ergebnisse "
+                        + "WHEN NEW.ergebnis<0 OR NEW.ergebnis>600 BEGIN SELECT RAISE(ABORT,'Ergebnis muss zwischen 0 und 600 liegen'); END");
         } catch (SQLException e) {
 	        throw new RuntimeException("Tabelle 'ergebnisse' konnte nicht angelegt werden", e);
 	    }
@@ -43,8 +50,10 @@ public class ErgebnisseDAO {
                 + "VALUES(?,?,?,?)";
 
         //Verbindung zu DB und arbeit ausführen
-        try (Connection con = DBController.getConnection();
-				PreparedStatement ps = con.prepareStatement(sql)){
+		try (Connection con = DBController.getConnection()) {
+			con.setAutoCommit(false);
+			meldungSichern(con, ergebnisse.getSchuetzeID(), ergebnisse.getWettkampftagID());
+			try (PreparedStatement ps = con.prepareStatement(sql)) {
 			
 			//set Values
 			ps.setString(1, ergebnisse.getId());
@@ -52,12 +61,26 @@ public class ErgebnisseDAO {
             ps.setString(3, ergebnisse.getWettkampftagID());
             ps.setInt(4, ergebnisse.getErgebnis());
 			
-			ps.executeUpdate();
-
+				ps.executeUpdate();
+			}
+			con.commit();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Ergebnis konnte nicht gespeichert werden", e);
 		}
 
+    }
+
+    private void meldungSichern(Connection con, String schuetzeID, String wettkampftagID) throws SQLException {
+        String sql = "INSERT OR IGNORE INTO saison_schuetze "
+                + "SELECT w.saisonID,s.id,s.vorname,s.nachname,m.id,m.name,a.id,a.name "
+                + "FROM wettkampftage w JOIN schuetze s ON s.id=? "
+                + "JOIN mannschaft m ON m.id=s.mannschaftid "
+                + "JOIN altersklasse a ON a.id=s.altersKlasse WHERE w.id=?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, schuetzeID);
+            ps.setString(2, wettkampftagID);
+            ps.executeUpdate();
+        }
     }
 
     /**
@@ -87,7 +110,7 @@ public class ErgebnisseDAO {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Ergebnis konnte nicht geladen werden", e);
         }
 
         return ergebnis;
@@ -106,8 +129,9 @@ public class ErgebnisseDAO {
         //die besten 3 Ergebnisse direkt von der DB sortiert und begrenzt holen und aufsummieren
         String sql = "SELECT COALESCE(SUM(ergebnis), 0) FROM ("
                 + "SELECT e.ergebnis FROM ergebnisse e "
-                + "JOIN schuetze s ON e.schuetzeID = s.id "
-                + "WHERE s.mannschaftid = ? AND e.wettkampftagID = ? "
+                + "JOIN wettkampftage w ON w.id=e.wettkampftagID "
+                + "JOIN saison_schuetze ss ON ss.saisonID=w.saisonID AND ss.schuetzeID=e.schuetzeID "
+                + "WHERE ss.mannschaftID = ? AND e.wettkampftagID = ? "
                 + "ORDER BY e.ergebnis DESC LIMIT 3"
                 + ")";
 
@@ -125,7 +149,7 @@ public class ErgebnisseDAO {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Mannschaftsergebnis konnte nicht berechnet werden", e);
         }
 
         return gesamt;
@@ -150,7 +174,7 @@ public class ErgebnisseDAO {
             ps.executeUpdate();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Ergebnis konnte nicht aktualisiert werden", e);
         }
     }
 

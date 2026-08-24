@@ -5,6 +5,8 @@ import io.github.manadhion.wettkampf.data.Liga;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -63,6 +65,17 @@ public class LigaView extends Stage {
             nameField.setText(bearbeiten.getLigaName());
         }
 
+        HBox rangBox = new HBox();
+        rangBox.getStyleClass().add("Box-newLiga");
+        layout.getChildren().add(rangBox);
+        Text rangText = new Text("Rangfolge (1 = höchste Liga): ");
+        rangText.getStyleClass().add("Text-newLiga");
+        int startRang = bearbeiten == null ? controller.naechsteLigaRangfolge() : bearbeiten.getRangfolge();
+        Spinner<Integer> rangSpinner = new Spinner<>();
+        rangSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 999, startRang));
+        rangSpinner.setEditable(true);
+        rangBox.getChildren().addAll(rangText, rangSpinner);
+
         //ButtonBox
         HBox buttonBox = new HBox();
         layout.getChildren().add(buttonBox);
@@ -72,12 +85,28 @@ public class LigaView extends Stage {
         Button speichern = new Button("speichern");
         speichern.setOnAction(event -> {
 
+            if (nameField.getText().isBlank()) {
+                alert.errorAlert("Bitte einen Liganamen eingeben.");
+                return;
+            }
+
+            int rangfolge;
+            try {
+                rangfolge = rangSpinner.getValueFactory().getConverter().fromString(
+                        rangSpinner.getEditor().getText());
+                if (rangfolge < 1 || rangfolge > 999) throw new NumberFormatException();
+            } catch (RuntimeException ex) {
+                alert.errorAlert("Bitte eine Rangfolge zwischen 1 und 999 eingeben.");
+                return;
+            }
+
             if (bearbeiten == null) {
-                Liga l = new Liga(nameField.getText());
+                Liga l = new Liga(nameField.getText(), rangfolge);
                 controller.neueLigaSpeichern(l);
             } else {
                 //bestehende Liga ändern, ID bleibt erhalten
                 bearbeiten.setLigaName(nameField.getText());
+                bearbeiten.setRangfolge(rangfolge);
                 controller.ligaAktualisieren(bearbeiten);
             }
 
@@ -90,7 +119,7 @@ public class LigaView extends Stage {
 		});
         buttonBox.getChildren().addAll(speichern, abbrechen);
 
-        Scene scene = new Scene(layout,450, 100); //Fenstereinstellungens-Parameter
+        Scene scene = new Scene(layout,500, 160); //Fenstereinstellungens-Parameter
 
         //style.css in dieses Fenster/Szene einbinden
         scene.getStylesheets().add(getClass().getResource("/io/github/manadhion/wettkampf/view/style.css").toExternalForm());

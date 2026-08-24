@@ -146,6 +146,12 @@ public class MannschaftView extends Stage {
                 }
             });
 
+        //Eine beim Öffnen bereits vorausgewählte Liga löst den erst danach registrierten Listener nicht aus.
+        //Darum den anfänglichen Buttonzustand ausdrücklich an die aktuelle Auswahl anpassen.
+        boolean keineLigaAusgewaehlt = ligaCombo.getSelectionModel().getSelectedItem() == null;
+        saMinusButton.setDisable(keineLigaAusgewaehlt);
+        saEditButton.setDisable(keineLigaAusgewaehlt);
+
         //ButtonBox
         HBox buttonBox = new HBox();
         layout.getChildren().add(buttonBox);
@@ -156,6 +162,11 @@ public class MannschaftView extends Stage {
         speichern.setOnAction(event -> {
 
             Liga liga = ligaCombo.getSelectionModel().getSelectedItem();
+
+            if (nameField.getText().isBlank()) {
+                alert.errorAlert("Bitte einen Mannschaftsnamen eingeben");
+                return;
+            }
 
             if (liga == null) {
                 alert.errorAlert("Bitte eine Liga auswählen");

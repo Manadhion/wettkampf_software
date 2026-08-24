@@ -1,0 +1,53 @@
+name: wettkampf-server
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: wettkampf
+      POSTGRES_USER: wettkampf
+      POSTGRES_PASSWORD: ${WETTKAMPF_DB_PASSWORT:?WETTKAMPF_DB_PASSWORT fehlt}
+    volumes:
+      - postgres-daten:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wettkampf -d wettkampf"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    mem_limit: 640m
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      WETTKAMPF_DB_URL: jdbc:postgresql://postgres:5432/wettkampf
+      WETTKAMPF_DB_BENUTZER: wettkampf
+      WETTKAMPF_DB_PASSWORT: ${WETTKAMPF_DB_PASSWORT:?WETTKAMPF_DB_PASSWORT fehlt}
+      WETTKAMPF_KONTO_NAME: ${WETTKAMPF_KONTO_NAME:?WETTKAMPF_KONTO_NAME fehlt}
+      WETTKAMPF_KONTO_PASSWORT: ${WETTKAMPF_KONTO_PASSWORT:?WETTKAMPF_KONTO_PASSWORT fehlt}
+      WETTKAMPF_SERVER_PORT: 8080
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=70.0 -XX:+ExitOnOutOfMemoryError
+    ports:
+      - "127.0.0.1:8002:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    mem_limit: 768m
+
+volumes:
+  postgres-daten:

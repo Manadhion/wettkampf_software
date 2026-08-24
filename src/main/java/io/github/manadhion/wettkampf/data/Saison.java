@@ -44,6 +44,11 @@ public class Saison {
         return id;
     }
 
+    /** Übernimmt die vom Online-Server vergebene ID. */
+    public void setId(String id) {
+        this.id = id;
+    }
+
     /**
      * Anzeigetext für die ComboBox.
      * @return Spieljahr im Format JJ/JJ, z.B. 25/26

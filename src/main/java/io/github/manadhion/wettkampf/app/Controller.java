@@ -1,13 +1,5 @@
 package io.github.manadhion.wettkampf.app;
 
-import io.github.manadhion.wettkampf.dao.AltersklasseDAO;
-import io.github.manadhion.wettkampf.dao.BegegnungDAO;
-import io.github.manadhion.wettkampf.dao.ErgebnisseDAO;
-import io.github.manadhion.wettkampf.dao.LigaDAO;
-import io.github.manadhion.wettkampf.dao.MannschaftDAO;
-import io.github.manadhion.wettkampf.dao.SaisonDAO;
-import io.github.manadhion.wettkampf.dao.SchuetzeDAO;
-import io.github.manadhion.wettkampf.dao.WettkampftageDAO;
 import io.github.manadhion.wettkampf.view.AltersklasseView;
 import io.github.manadhion.wettkampf.view.BeamerView;
 import io.github.manadhion.wettkampf.view.BegegnungView;
@@ -25,6 +17,7 @@ import io.github.manadhion.wettkampf.data.Liga;
 import io.github.manadhion.wettkampf.data.Mannschaft;
 import io.github.manadhion.wettkampf.data.Saison;
 import io.github.manadhion.wettkampf.data.Schuetze;
+import io.github.manadhion.wettkampf.data.SaisonSchuetze;
 import io.github.manadhion.wettkampf.data.Wettkampftage;
 import java.io.File;
 import java.util.List;
@@ -33,6 +26,8 @@ import java.util.List;
  * Vermittelt zwischen den Fenstern (view) und den Data Access-Objekten (dao) und lenkt so den Datenstrom.
  */
 public class Controller {
+
+    private final WettkampfDatenService datenService;
     
     //Instanzen der App-Fenster
     private Main viewMain;
@@ -52,7 +47,15 @@ public class Controller {
      * Konstruktor ohne zugehöriges Fenster.
      */
     public Controller() {
-		super();
+		this(DatenServiceFabrik.fuerGespeicherteBetriebsart());
+	}
+
+    /**
+     * Konstruktor mit austauschbarem fachlichem Datenzugriff.
+     * @param datenService aktiver lokaler oder späterer Online-Datenservice
+     */
+    public Controller(WettkampfDatenService datenService) {
+        this.datenService = java.util.Objects.requireNonNull(datenService);
 	}
 
     /**
@@ -60,6 +63,17 @@ public class Controller {
      * @param viewMain das Hauptfenster
      */
     public Controller(Main viewMain) {
+        this();
+        this.viewMain = viewMain;
+    }
+
+    /**
+     * Konstruktor mit Hauptfenster und ausdrücklich gewähltem Datenservice.
+     * @param viewMain das Hauptfenster
+     * @param datenService aktiver Datenservice
+     */
+    public Controller(Main viewMain, WettkampfDatenService datenService) {
+        this(datenService);
         this.viewMain = viewMain;
     }
 
@@ -68,6 +82,7 @@ public class Controller {
      * @param saisonView das Saison-Fenster
      */
     public Controller(SaisonView saisonView) {
+        this();
         this.saisonView = saisonView;
     }
 
@@ -76,6 +91,7 @@ public class Controller {
      * @param wTageView das Wettkampftag-Fenster
      */
     public Controller(WTagView wTageView) {
+        this();
         this.wTageView = wTageView;
     }
 
@@ -84,6 +100,7 @@ public class Controller {
      * @param mannschaftView das Mannschaft-Fenster
      */
     public Controller(MannschaftView mannschaftView) {
+        this();
         this.mannschaftView = mannschaftView;
     }
 
@@ -92,6 +109,7 @@ public class Controller {
      * @param ligaView das Liga-Fenster
      */
     public Controller(LigaView ligaView) {
+        this();
         this.ligaView = ligaView;
     }
 
@@ -100,6 +118,7 @@ public class Controller {
      * @param alterView das Altersklasse-Fenster
      */
     public Controller(AltersklasseView alterView) {
+        this();
         this.alterView = alterView;
     }
 
@@ -108,6 +127,7 @@ public class Controller {
      * @param schuetzeView das Schütze-Fenster
      */
     public Controller(SchuetzeView schuetzeView) {
+        this();
         this.schuetzeView = schuetzeView;
     }
 
@@ -116,6 +136,7 @@ public class Controller {
      * @param begegnungView das Begegnung-Fenster
      */
     public Controller(BegegnungView begegnungView) {
+        this();
         this.begegnungView = begegnungView;
     }
 
@@ -124,23 +145,7 @@ public class Controller {
      * Legt alle Tabellen der Datenbank an, falls sie noch nicht existieren.
      */
     public void createTableIfNotExists() {
-        MannschaftDAO maDAO = new MannschaftDAO();
-        BegegnungDAO bDAO = new BegegnungDAO();
-        ErgebnisseDAO eDAO = new ErgebnisseDAO();
-        SchuetzeDAO sDAO = new SchuetzeDAO();
-        WettkampftageDAO wDAO = new WettkampftageDAO();
-        SaisonDAO saDAO = new SaisonDAO();
-        LigaDAO lDAO = new LigaDAO();
-        AltersklasseDAO aDAO = new AltersklasseDAO();
-        
-        maDAO.createTableIfNotExists();
-        bDAO.createTableIfNotExists();
-        eDAO.createTableIfNotExists();
-        sDAO.createTableIfNotExists();
-        wDAO.createTableIfNotExists();
-        saDAO.createTableIfNotExists();
-        lDAO.createTableIfNotExists();
-        aDAO.createTableIfNotExists();
+        datenService.initialisieren();
     }
 
     /**
@@ -150,12 +155,7 @@ public class Controller {
     public List<Wettkampftage> alleWettkampfTage () {
 
         //Objekt zum kommunizieren mit DB erzeugen
-        WettkampftageDAO wkDAO = new WettkampftageDAO();
-
-        //Methode aus DAO ausführen
-        List<Wettkampftage> wettkampftage = wkDAO.alleTage();
-
-        return wettkampftage;
+        return datenService.alleWettkampfTage();
     }
 
     /**
@@ -166,12 +166,7 @@ public class Controller {
     public List<Wettkampftage> wettkampftageVonSaison(String saisonID) {
 
         //Objekt zum kommunizieren mit DB erzeugen
-        WettkampftageDAO wkDAO = new WettkampftageDAO();
-
-        //Methode aus DAO ausführen
-        List<Wettkampftage> wettkampftage = wkDAO.tageVonSaison(saisonID);
-
-        return wettkampftage;
+        return datenService.wettkampftageVonSaison(saisonID);
     }
 
     /**
@@ -181,12 +176,7 @@ public class Controller {
     public List<Mannschaft> alleMannschaften () {
 
         //Objekt zum kommunizieren mit DB erzeugen
-        MannschaftDAO mDAO = new MannschaftDAO();
-
-        //Methode aus DAO ausführen
-        List<Mannschaft> mannschaften = mDAO.alleMannschaften();
-
-        return mannschaften;
+        return datenService.alleMannschaften();
     }
 
     /**
@@ -197,12 +187,7 @@ public class Controller {
     public List<Schuetze> schuetzenVonMannschaft(String id) {
 
         //Objekt zum kommunizieren mit DB erzeugen
-        SchuetzeDAO sDAO = new SchuetzeDAO();
-
-        //Methode aus DAO ausführen
-        List<Schuetze> schuetze = sDAO.schuetzenVonMannschaft(id);
-
-        return schuetze;
+        return datenService.schuetzenVonMannschaft(id);
     }
 
     /**
@@ -210,9 +195,7 @@ public class Controller {
      * @return Liste aller Altersklassen
      */
     public List<Altersklasse> alleAltersklassen() {
-        AltersklasseDAO aDAO = new AltersklasseDAO();
-        List<Altersklasse> aKlassen = aDAO.alleAltersklassen();
-        return aKlassen;
+        return datenService.alleAltersklassen();
     }
 
     /**
@@ -224,12 +207,7 @@ public class Controller {
     public Ergebnisse ergebnisFuer(String schuetzeID, String wettkampftagID) {
 
         //Objekt zum kommunizieren mit DB erzeugen
-        ErgebnisseDAO eDAO = new ErgebnisseDAO();
-
-        //Methode aus DAO ausführen
-        Ergebnisse ergebnis = eDAO.ergebnisFuerSchuetzeUndTag(schuetzeID, wettkampftagID);
-
-        return ergebnis;
+        return datenService.ergebnisFuer(schuetzeID, wettkampftagID);
     }
 
     /**
@@ -241,10 +219,7 @@ public class Controller {
     public int gesamtErgebnisBeste3(String mannschaftID, String wettkampftagID) {
 
         //Objekt zum kommunizieren mit DB erzeugen
-        ErgebnisseDAO eDAO = new ErgebnisseDAO();
-
-        //Methode aus DAO ausführen
-        return eDAO.gesamtErgebnisBeste3(mannschaftID, wettkampftagID);
+        return datenService.gesamtErgebnisBeste3(mannschaftID, wettkampftagID);
     }
 
     /**
@@ -254,12 +229,39 @@ public class Controller {
     public List<Liga> alleLigen() {
 
         //Objekt zum kommunizieren mit DB erzeugen
-        LigaDAO lDAO = new LigaDAO();
+        return datenService.alleLigen();
+    }
 
-        //Methode aus DAO ausführen
-        List<Liga> ligen = lDAO.alleLigen();
+    public List<Mannschaft> mannschaftenVonSaison(String saisonID) {
+        return datenService.mannschaftenVonSaison(saisonID);
+    }
 
-        return ligen;
+    /**
+     * Historische Schützenmeldungen einer Mannschaft in einer Saison abrufen.
+     */
+    public List<SaisonSchuetze> saisonSchuetzenVonMannschaft(String saisonID, String mannschaftID) {
+        return datenService.saisonSchuetzenVonMannschaft(saisonID, mannschaftID);
+    }
+
+    public SaisonSchuetze saisonSchuetzeFinden(String saisonID, String schuetzeID) {
+        return datenService.saisonSchuetzeFinden(saisonID, schuetzeID);
+    }
+
+    public void saisonSchuetzeSpeichern(SaisonSchuetze meldung) {
+        datenService.saisonSchuetzeSpeichern(meldung);
+    }
+
+    /**
+     * Alle in einer Saison verwendeten Ligen abrufen.
+     * @param saisonID id der Saison
+     * @return Ligen mit Begegnungen in dieser Saison
+     */
+    public List<Liga> ligenVonSaison(String saisonID) {
+        return datenService.ligenVonSaison(saisonID);
+    }
+
+    public int naechsteLigaRangfolge() {
+        return datenService.naechsteLigaRangfolge();
     }
 
     /**
@@ -271,19 +273,9 @@ public class Controller {
     public void ergebnisSpeichern(String schuetzeID, String wettkampftagID, int wert) {
 
         //Objekt zum kommunizieren mit DB erzeugen
-        ErgebnisseDAO eDAO = new ErgebnisseDAO();
-
-        //prüfen ob für diesen Schützen an diesem Tag schon ein Ergebnis existiert
-        Ergebnisse vorhanden = eDAO.ergebnisFuerSchuetzeUndTag(schuetzeID, wettkampftagID);
-
-        if (vorhanden == null) {
-            //noch keins, neues Ergebnis anlegen
-            eDAO.insert(new Ergebnisse(schuetzeID, wettkampftagID, wert));
+        if (datenService.ergebnisSpeichern(schuetzeID, wettkampftagID, wert)) {
             alert.savedAlert("Ergebnis gespeichert");
         } else {
-            //schon vorhanden, Wert ändern und updaten
-            vorhanden.setErgebnis(wert);
-            eDAO.update(vorhanden);
             alert.savedAlert("Ergebnis geändert");
         }
     }
@@ -293,9 +285,7 @@ public class Controller {
      * @return Liste aller Saisons
      */
     public List<Saison> alleSaisons() {
-        SaisonDAO sDAO = new SaisonDAO();
-        List<Saison> saison = sDAO.alleSaisons();
-        return saison;
+        return datenService.alleSaisons();
     }
 
     /**
@@ -304,8 +294,7 @@ public class Controller {
      * @return gefundene Saison, oder null wenn es keine gibt
      */
     public Saison saisonMitId(String id) {
-        SaisonDAO sDAO = new SaisonDAO();
-        return sDAO.saisonMitId(id);
+        return datenService.saisonMitId(id);
     }
 
     /**
@@ -314,9 +303,11 @@ public class Controller {
      * @return Liste der Begegnungen an diesem Tag
      */
     public List<Begegnung> begegnungenAnDiesemTag(String wettkampftag) {
-        BegegnungDAO bDAO = new BegegnungDAO();
-        List<Begegnung> begegnungen = bDAO.begegnungenAnDiesemTag(wettkampftag);
-        return begegnungen;
+        return datenService.begegnungenAnDiesemTag(wettkampftag);
+    }
+
+    public boolean begegnungExistiert(String tagID, String mannschaftA, String mannschaftB) {
+        return datenService.begegnungExistiert(tagID, mannschaftA, mannschaftB);
     }
 
     /**
@@ -325,9 +316,7 @@ public class Controller {
      * @return gefundene Mannschaft, oder null wenn es keine gibt
      */
     public Mannschaft mannschaftMitID(String mID) {
-        MannschaftDAO mDAO = new MannschaftDAO();
-        Mannschaft m = mDAO.mannschaftMitID(mID);
-        return m;
+        return datenService.mannschaftMitId(mID);
     }
 
     /**
@@ -358,8 +347,7 @@ public class Controller {
      * @param saison Saison mit den geänderten Werten
      */
     public void saisonAktualisieren(Saison saison) {
-        SaisonDAO sDAO = new SaisonDAO();
-        sDAO.update(saison);
+        datenService.saisonAktualisieren(saison);
         saisonView.close();
         viewMain.saisonComboAktualisieren();
     }
@@ -370,8 +358,7 @@ public class Controller {
      * @return true wenn bereits eine Saison mit diesem Namen existiert
      */
     public boolean saisonExistiert(int name) {
-        SaisonDAO sDAO = new SaisonDAO();
-        return sDAO.existiert(name);
+        return datenService.saisonExistiert(name);
     }
 
     /**
@@ -379,8 +366,7 @@ public class Controller {
      * @param saison anzulegende Saison
      */
     public void neueSaisonAnlegen (Saison saison) {
-        SaisonDAO sDAO = new SaisonDAO();
-        sDAO.insert(saison);
+        datenService.saisonAnlegen(saison);
         saisonView.close();
         viewMain.saisonComboAktualisieren();
         viewMain.saisonAuswaehlen(saison.getId()); //neu angelegte Saison sofort auswählen
@@ -401,8 +387,7 @@ public class Controller {
      * @param id id der zu löschenden Saison
      */
     public void saisonLoeschen(String id) {
-        SaisonDAO sDAO = new SaisonDAO();
-        int geloescht = sDAO.delete(id); //Zum testen ob tatsächlich etwas gelöscht wurde
+        int geloescht = datenService.saisonLoeschen(id);
 
         if (geloescht > 0) { //Wenn tatsächlich etwas gelöscht wurde
             alert.infoAlert("Saison wurde gelöscht");
@@ -443,8 +428,7 @@ public class Controller {
      * @param id id der Saison, deren Wettkampftage-ComboBox aktualisiert wird
      */
     public void neuenWettkampftagSpeichern (Wettkampftage w, String id) {
-        WettkampftageDAO wDAO = new WettkampftageDAO();
-        wDAO.insert(w);
+        datenService.wettkampftagAnlegen(w);
         wTageView.close();
         viewMain.wTagComboAktualisieren(id);
         viewMain.wTagAuswaehlen(w.getId()); //neu angelegten Wettkampftag sofort auswählen
@@ -456,8 +440,7 @@ public class Controller {
      * @param id id der Saison, deren Wettkampftage-ComboBox aktualisiert wird
      */
     public void wTagAktualisieren (Wettkampftage w, String id) {
-        WettkampftageDAO wDAO = new WettkampftageDAO();
-        wDAO.update(w);
+        datenService.wettkampftagAktualisieren(w);
         wTageView.close();
         viewMain.wTagComboAktualisieren(id);
     }
@@ -479,8 +462,7 @@ public class Controller {
      * @param saisonID id der Saison, deren Wettkampftage-ComboBox aktualisiert wird
      */
     public void wTagLoeschen(String id, String saisonID) {
-        WettkampftageDAO wDAO = new WettkampftageDAO();
-        int geloescht = wDAO.delete(id); //Zum testen ob tatsächlich etwas gelöscht wurde
+        int geloescht = datenService.wettkampftagLoeschen(id);
 
         if (geloescht > 0) { //Wenn tatsächlich etwas gelöscht wurde
             alert.infoAlert("Wettkampftag wurde gelöscht");
@@ -519,8 +501,7 @@ public class Controller {
      * @param m anzulegende Mannschaft
      */
     public void neueMannschaftSpeichern (Mannschaft m) {
-        MannschaftDAO mDAO = new MannschaftDAO();
-        mDAO.insert(m);
+        datenService.mannschaftAnlegen(m);
         mannschaftView.close();
         viewMain.mannschaftComboAktualisieren();
         viewMain.mannschaftAuswaehlen(m.getId()); //neu angelegte Mannschaft sofort auswählen
@@ -531,8 +512,7 @@ public class Controller {
      * @param m Mannschaft mit den geänderten Werten
      */
     public void mannschaftAktualisieren (Mannschaft m) {
-        MannschaftDAO mDAO = new MannschaftDAO();
-        mDAO.update(m);
+        datenService.mannschaftAktualisieren(m);
         mannschaftView.close();
         viewMain.mannschaftComboAktualisieren();
     }
@@ -565,8 +545,7 @@ public class Controller {
      * @param l anzulegende Liga
      */
     public void neueLigaSpeichern (Liga l) {
-        LigaDAO lDAO = new LigaDAO();
-        lDAO.insert(l);
+        datenService.ligaAnlegen(l);
         ligaView.close();
         mannschaftView.ligaComboAktualisieren();
     }
@@ -576,8 +555,7 @@ public class Controller {
      * @param l Liga mit den geänderten Werten
      */
     public void ligaAktualisieren (Liga l) {
-        LigaDAO lDAO = new LigaDAO();
-        lDAO.update(l);
+        datenService.ligaAktualisieren(l);
         ligaView.close();
         mannschaftView.ligaComboAktualisieren();
     }
@@ -597,8 +575,7 @@ public class Controller {
      * @param id id der zu löschenden Liga
      */
     public void ligaLoeschen(String id) {
-        LigaDAO lDAO = new LigaDAO();
-        int geloescht = lDAO.delete(id); //Zum testen ob tatsächlich etwas gelöscht wurde
+        int geloescht = datenService.ligaLoeschen(id);
 
         if (geloescht > 0) { //Wenn tatsächlich etwas gelöscht wurde
             alert.infoAlert("Liga wurde gelöscht");
@@ -615,9 +592,7 @@ public class Controller {
      * @return gefundene Liga
      */
     public Liga ligaMitIdFinden(String id) {
-        LigaDAO lDAO = new LigaDAO();
-        Liga l = lDAO.ligaMitIdFinden(id);
-        return l;
+        return datenService.ligaMitId(id);
     }
 
     /**
@@ -635,8 +610,7 @@ public class Controller {
      * @param id id der zu löschenden Mannschaft
      */
     public void mannschaftLoeschen(String id) {
-        MannschaftDAO mDAO = new MannschaftDAO();
-        int geloescht = mDAO.delete(id); //Zum testen ob tatsächlich etwas gelöscht wurde
+        int geloescht = datenService.mannschaftLoeschen(id);
 
         if (geloescht > 0) { //Wenn tatsächlich etwas gelöscht wurde
             alert.infoAlert("Mannschaft wurde gelöscht");
@@ -675,8 +649,7 @@ public class Controller {
      * @param a anzulegende Altersklasse
      */
     public void neueAlterSpeichern (Altersklasse a) {
-        AltersklasseDAO aDAO = new AltersklasseDAO();
-        aDAO.insert(a);
+        datenService.altersklasseAnlegen(a);
         alterView.close();
         schuetzeView.alterComboAktualisieren();;
     }
@@ -686,8 +659,7 @@ public class Controller {
      * @param a Altersklasse mit den geänderten Werten
      */
     public void alterAktualisieren (Altersklasse a) {
-        AltersklasseDAO aDAO = new AltersklasseDAO();
-        aDAO.update(a);
+        datenService.altersklasseAktualisieren(a);
         alterView.close();
         schuetzeView.alterComboAktualisieren();
     }
@@ -707,8 +679,7 @@ public class Controller {
      * @param id id der zu löschenden Altersklasse
      */
     public void alterLoeschen(String id) {
-        AltersklasseDAO aDAO = new AltersklasseDAO();
-        int geloescht = aDAO.delete(id); //Zum testen ob tatsächlich etwas gelöscht wurde
+        int geloescht = datenService.altersklasseLoeschen(id);
 
         if (geloescht > 0) { //Wenn tatsächlich etwas gelöscht wurde
             alert.infoAlert("Altersklasse wurde gelöscht");
@@ -749,8 +720,7 @@ public class Controller {
      * @param id id der Mannschaft, deren Schützen-ComboBox aktualisiert wird
      */
     public void neuenSchuetzenpeichern (Schuetze s, String id) {
-        SchuetzeDAO sDAO = new SchuetzeDAO();
-        sDAO.insert(s);
+        datenService.schuetzeAnlegen(s);
         schuetzeView.close();
         viewMain.schuetzeComboAktualisieren(id);
         viewMain.schuetzeAuswaehlen(s.getId()); //neu angelegten Schützen sofort auswählen
@@ -762,8 +732,7 @@ public class Controller {
      * @param id id der Mannschaft, deren Schützen-ComboBox aktualisiert wird
      */
     public void schuetzeAktualisieren (Schuetze s, String id) {
-        SchuetzeDAO sDAO = new SchuetzeDAO();
-        sDAO.update(s);
+        datenService.schuetzeAktualisieren(s);
         schuetzeView.close();
         viewMain.schuetzeComboAktualisieren(id);
     }
@@ -783,8 +752,7 @@ public class Controller {
      * @param id id des zu löschenden Schützen
      */
     public void schuetzeLoeschen(String id) {
-        SchuetzeDAO sDAO = new SchuetzeDAO();
-        int geloescht = sDAO.delete(id); //Zum testen ob tatsächlich etwas gelöscht wurde
+        int geloescht = datenService.schuetzeLoeschen(id);
 
         if (geloescht > 0) { //Wenn tatsächlich etwas gelöscht wurde
             alert.infoAlert("Schütze wurde gelöscht");
@@ -800,8 +768,7 @@ public class Controller {
      * @param b anzulegende Begegnung
      */
     public void neueBegegnungSpeichern (Begegnung b) {
-        BegegnungDAO bDAO = new BegegnungDAO();
-        bDAO.insert(b);
+        datenService.begegnungAnlegen(b);
         begegnungView.close();
         viewMain.begegnungenAnzeigen();
     }
@@ -865,8 +832,7 @@ public class Controller {
      * @param id id der zu löschenden Begegnung
      */
     public void begegnungLoeschen(String id) {
-        BegegnungDAO bDAO = new BegegnungDAO();
-        int geloescht = bDAO.delete(id); //Zum testen ob tatsächlich etwas gelöscht wurde
+        int geloescht = datenService.begegnungLoeschen(id);
 
         if (geloescht > 0) { //Wenn tatsächlich etwas gelöscht wurde
             alert.infoAlert("Begegnung wurde gelöscht");

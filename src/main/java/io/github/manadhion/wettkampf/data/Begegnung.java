@@ -12,6 +12,10 @@ public class Begegnung {
     private String heim;    //Heimmannschaft laut Saisonplanung
     private String gegner;  //Auswärtsmannschaft laut Saisonplanung
     private String wettkampftag;    //Referenz zum Wettkampftag
+    private String liga;            //Liga zum Zeitpunkt der Saisonplanung
+    private String ligaName;        //Liganame zum Zeitpunkt der Saisonplanung
+    private String heimName;
+    private String gegnerName;
 
 
     /**
@@ -39,11 +43,37 @@ public class Begegnung {
      */
     public Begegnung(String id, String heim, String gegner, String wettkampftag) {
 
+        this(id, heim, gegner, wettkampftag, null, null);
+    }
+
+    public Begegnung(String id, String heim, String gegner, String wettkampftag, String liga, String ligaName) {
+
+        this(id, heim, gegner, wettkampftag, liga, ligaName, null, null);
+    }
+
+    public Begegnung(String id, String heim, String gegner, String wettkampftag, String liga, String ligaName,
+            String heimName, String gegnerName) {
+
         this.id = id;
         this.heim = heim;
         this.gegner = gegner;
         this.wettkampftag = wettkampftag;
+        this.liga = liga;
+        this.ligaName = ligaName;
+        this.heimName = heimName;
+        this.gegnerName = gegnerName;
     }
+
+    public String getLiga() {
+        return liga;
+    }
+
+    public String getLigaName() {
+        return ligaName;
+    }
+
+    public String getHeimName() { return heimName; }
+    public String getGegnerName() { return gegnerName; }
 
     public String getId() {
         return id;

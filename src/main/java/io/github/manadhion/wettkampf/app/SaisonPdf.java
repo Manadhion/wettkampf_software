@@ -29,7 +29,7 @@ import io.github.manadhion.wettkampf.data.Ergebnisse;
 import io.github.manadhion.wettkampf.data.Liga;
 import io.github.manadhion.wettkampf.data.Mannschaft;
 import io.github.manadhion.wettkampf.data.Saison;
-import io.github.manadhion.wettkampf.data.Schuetze;
+import io.github.manadhion.wettkampf.data.SaisonSchuetze;
 import io.github.manadhion.wettkampf.data.TabellenZeile;
 import io.github.manadhion.wettkampf.data.Wettkampftage;
 
@@ -74,7 +74,7 @@ public class SaisonPdf {
 
         Saison saison = controller.saisonMitId(stichtag.getSaisonID());
         List<Wettkampftage> tage = tageBisStichtag(stichtag);
-        List<Liga> ligen = controller.alleLigen();
+        List<Liga> ligen = controller.ligenVonSaison(saison.getId());
 
         //Querformat, damit die vielen Wettkampftag-Spalten der Einzelergebnisse nebeneinander passen
         try (FileOutputStream os = new FileOutputStream(datei)) {
@@ -150,14 +150,11 @@ public class SaisonPdf {
             rwk++;
         }
 
-        //je Mannschaft der Liga deren Schützen als Zeilen
-        for (Mannschaft m : controller.alleMannschaften()) {
-            if (!m.getKlasse().equals(liga.getId())) {
-                continue;
-            }
-            for (Schuetze s : controller.schuetzenVonMannschaft(m.getId())) {
+        //je historischer Mannschaft der Liga deren Saisonmeldungen als Zeilen
+        for (Mannschaft m : mannschaftenDerLiga(liga, saison)) {
+            for (SaisonSchuetze s : controller.saisonSchuetzenVonMannschaft(saison.getId(), m.getId())) {
 
-                tabelle.addCell(zelle(m.getName(), Element.ALIGN_LEFT));
+                tabelle.addCell(zelle(s.getMannschaftName(), Element.ALIGN_LEFT));
                 tabelle.addCell(zelle(s.getNachname() + " " + s.getVorname(), Element.ALIGN_LEFT));
 
                 //Ergebnisse des Schützen je Wettkampftag einsammeln, dabei Summe und Anzahl für den Durchschnitt bilden
@@ -165,7 +162,7 @@ public class SaisonPdf {
                 int anzahl = 0;
                 List<String> werte = new ArrayList<>();
                 for (Wettkampftage tag : tage) {
-                    Ergebnisse e = controller.ergebnisFuer(s.getId(), tag.getId());
+                    Ergebnisse e = controller.ergebnisFuer(s.getSchuetzeID(), tag.getId());
                     if (e == null) {
                         //an diesem Tag nicht geschossen, Zelle bleibt leer
                         werte.add("");
@@ -187,6 +184,25 @@ public class SaisonPdf {
         }
 
         doc.add(tabelle);
+    }
+
+    private List<Mannschaft> mannschaftenDerLiga(Liga liga, Saison saison) {
+        Set<String> ids = new LinkedHashSet<>();
+        for (Wettkampftage tag : controller.wettkampftageVonSaison(saison.getId())) {
+            for (Begegnung b : controller.begegnungenAnDiesemTag(tag.getId())) {
+                Mannschaft heim = controller.mannschaftMitID(b.getHeim());
+                String begegnungsLiga = b.getLiga() == null ? heim.getKlasse() : b.getLiga();
+                if (begegnungsLiga.equals(liga.getId())) {
+                    ids.add(b.getHeim());
+                    ids.add(b.getGegner());
+                }
+            }
+        }
+        List<Mannschaft> mannschaften = new ArrayList<>();
+        for (String id : ids) {
+            mannschaften.add(controller.mannschaftMitID(id));
+        }
+        return mannschaften;
     }
 
     //relative Spaltenbreiten der Einzelergebnis-Tabelle: Verein und Name breiter, RWK-Spalten schmal
@@ -261,8 +277,8 @@ public class SaisonPdf {
         Set<String> beteiligt = new LinkedHashSet<>();
         for (Begegnung b : controller.begegnungenAnDiesemTag(tag.getId())) {
             Mannschaft heim = controller.mannschaftMitID(b.getHeim());
-            //eine Begegnung gehört zur Liga, wenn die Heimmannschaft in dieser Liga spielt
-            if (heim == null || !heim.getKlasse().equals(liga.getId())) {
+            String begegnungsLiga = b.getLiga() == null && heim != null ? heim.getKlasse() : b.getLiga();
+            if (begegnungsLiga == null || !begegnungsLiga.equals(liga.getId())) {
                 continue;
             }
             begegnungen.add(b);
@@ -290,23 +306,37 @@ public class SaisonPdf {
             int ringeHeim = controller.gesamtErgebnisBeste3(heim.getId(), tag.getId());
             int ringeGegner = controller.gesamtErgebnisBeste3(gegner.getId(), tag.getId());
 
-            tabelle.addCell(zelle(heim.getName(), Element.ALIGN_RIGHT));
+            String heimName = b.getHeimName() == null ? heim.getName() : b.getHeimName();
+            String gegnerName = b.getGegnerName() == null ? gegner.getName() : b.getGegnerName();
+            tabelle.addCell(zelle(heimName, Element.ALIGN_RIGHT));
             tabelle.addCell(zelle(ringeHeim + " : " + ringeGegner, Element.ALIGN_CENTER));
-            tabelle.addCell(zelle(gegner.getName(), Element.ALIGN_LEFT));
+            tabelle.addCell(zelle(gegnerName, Element.ALIGN_LEFT));
             tabelle.addCell(zelle(begegnungspunkte(ringeHeim, ringeGegner), Element.ALIGN_CENTER));
         }
         doc.add(tabelle);
 
         //Mannschaften der Liga, die an diesem Tag kein Spiel hatten (Freilos)
         List<String> frei = new ArrayList<>();
-        for (Mannschaft m : controller.alleMannschaften()) {
-            if (m.getKlasse().equals(liga.getId()) && !beteiligt.contains(m.getId())) {
-                frei.add(m.getName());
+        Saison saison = controller.saisonMitId(tag.getSaisonID());
+        for (Mannschaft m : mannschaftenDerLiga(liga, saison)) {
+            if (!beteiligt.contains(m.getId())) {
+                frei.add(mannschaftNameInSaison(m.getId(), saison));
             }
         }
         if (!frei.isEmpty()) {
             doc.add(new Paragraph("Frei: " + String.join(", ", frei), ZELLE));
         }
+    }
+
+    private String mannschaftNameInSaison(String mannschaftID, Saison saison) {
+        for (Wettkampftage tag : controller.wettkampftageVonSaison(saison.getId())) {
+            for (Begegnung b : controller.begegnungenAnDiesemTag(tag.getId())) {
+                if (b.getHeim().equals(mannschaftID) && b.getHeimName() != null) return b.getHeimName();
+                if (b.getGegner().equals(mannschaftID) && b.getGegnerName() != null) return b.getGegnerName();
+            }
+        }
+        Mannschaft m = controller.mannschaftMitID(mannschaftID);
+        return m == null ? "Unbekannte Mannschaft" : m.getName();
     }
 
     //Begegnungspunkte nach der 2/1/0-Regel; solange nicht beide Mannschaften geschossen haben, gibt es noch keine Punkte

@@ -54,7 +54,7 @@ public class AltersklasseDAO {
 			ps.executeUpdate();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Altersklasse konnte nicht gespeichert werden", e);
 		}
     }
 
@@ -77,7 +77,7 @@ public class AltersklasseDAO {
 			ps.executeUpdate();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Altersklasse konnte nicht aktualisiert werden", e);
 		}
     }
 
@@ -103,7 +103,7 @@ public class AltersklasseDAO {
 			}
 			
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Altersklassen konnten nicht geladen werden", e);
 		}
 
         return aKlassen;
@@ -115,7 +115,9 @@ public class AltersklasseDAO {
      * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
      */
     public int delete(String id) {
-        String sql = "DELETE FROM altersklasse WHERE id=?;";
+        String sql = "DELETE FROM altersklasse WHERE id=? "
+                + "AND NOT EXISTS (SELECT 1 FROM schuetze WHERE altersKlasse=?) "
+                + "AND NOT EXISTS (SELECT 1 FROM saison_schuetze WHERE altersklasseID=?)";
 
         //return Statement
         int erg = 0;
@@ -123,10 +125,12 @@ public class AltersklasseDAO {
         //Löschvorgang
         try(Connection con = DBController.getConnection();
 				PreparedStatement ps = con.prepareStatement(sql)){
-			ps.setString(1, id);;
+			ps.setString(1, id);
+			ps.setString(2, id);
+			ps.setString(3, id);
 			erg = ps.executeUpdate();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Altersklasse konnte nicht gelöscht werden", e);
 		}
 		
 		//wenn erg >0 ist war das Löschen erfolgreich

@@ -61,7 +61,7 @@ public class SchuetzeDAO {
 			ps.executeUpdate();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Schütze konnte nicht gespeichert werden", e);
 		}
 
     }
@@ -88,7 +88,7 @@ public class SchuetzeDAO {
 			ps.executeUpdate();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Schütze konnte nicht aktualisiert werden", e);
 		}
 
     }
@@ -121,7 +121,7 @@ public class SchuetzeDAO {
 			}
 			
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Schützen konnten nicht geladen werden", e);
 		}
 
         return schuetze;
@@ -133,7 +133,9 @@ public class SchuetzeDAO {
      * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
      */
     public int delete(String id) {
-        String sql = "DELETE FROM schuetze WHERE id=?;";
+        String sql = "DELETE FROM schuetze WHERE id=? "
+                + "AND NOT EXISTS (SELECT 1 FROM ergebnisse WHERE schuetzeID=?) "
+                + "AND NOT EXISTS (SELECT 1 FROM saison_schuetze WHERE schuetzeID=?)";
 
         //return Statement
         int erg = 0;
@@ -141,10 +143,12 @@ public class SchuetzeDAO {
         //Löschvorgang
         try(Connection con = DBController.getConnection();
 				PreparedStatement ps = con.prepareStatement(sql)){
-			ps.setString(1, id);;
+			ps.setString(1, id);
+			ps.setString(2, id);
+			ps.setString(3, id);
 			erg = ps.executeUpdate();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Schütze konnte nicht gelöscht werden", e);
 		}
 		
 		//wenn erg >0 ist war das Löschen erfolgreich

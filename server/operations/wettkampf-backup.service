@@ -1,0 +1,11 @@
+[Unit]
+Description=PostgreSQL-Backup des Wettkampf-Servers
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/wettkampf-server/operations/backup-postgres.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

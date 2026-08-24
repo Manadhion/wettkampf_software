@@ -8,6 +8,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -15,9 +16,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
@@ -30,6 +33,7 @@ import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -41,6 +45,13 @@ import java.util.function.UnaryOperator;
 
 import io.github.manadhion.wettkampf.app.Controller;
 import io.github.manadhion.wettkampf.app.DBController;
+import io.github.manadhion.wettkampf.app.Anwendungsversion;
+import io.github.manadhion.wettkampf.app.Anwendungskonfiguration;
+import io.github.manadhion.wettkampf.app.Betriebsart;
+import io.github.manadhion.wettkampf.app.DatenServiceFabrik;
+import io.github.manadhion.wettkampf.app.GitHubAktualisierungsdienst;
+import io.github.manadhion.wettkampf.app.OnlineWettkampfDatenService;
+import io.github.manadhion.wettkampf.app.WettkampfDatenService;
 import io.github.manadhion.wettkampf.data.Begegnung;
 import io.github.manadhion.wettkampf.data.Ergebnisse;
 import io.github.manadhion.wettkampf.data.Mannschaft;
@@ -57,7 +68,8 @@ public class Main extends Application {
     private static final DateTimeFormatter DATUM_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     //Controller-Objekt erzeugen
-    private Controller controller = new Controller(this);
+    private Controller controller;
+    private WettkampfDatenService datenService;
 
     //GUI-Elemente als Felder, damit auch die Methoden außerhalb von start  sie sehen
     private ComboBox<Saison> saisonCombo;
@@ -72,6 +84,9 @@ public class Main extends Application {
     private Button begegnungButton;
     private Button beamerButton = new Button("Beamer-Anzeige starten");
     private Button pdfButton = new Button("Saison-PDF …");
+    private Label offlineHinweis;
+    private Button konfliktLoesenButton = new Button("Versionskonflikt lösen …");
+    private boolean vorherigerVersionskonflikt;
 
     /**
      * Einstiegspunkt, erzeugt eine Instanz und startet die Methode start aus der App-Klasse.
@@ -88,8 +103,23 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        //beim ersten Start festlegen welche Datenbank verwendet wird
-        datenbankFestlegen(primaryStage);
+        Thread.currentThread().setUncaughtExceptionHandler((thread, fehler) -> {
+            Throwable ursache = fehler;
+            while (ursache.getCause() != null) ursache = ursache.getCause();
+            String nachricht = ursache.getMessage() == null ? ursache.getClass().getSimpleName() : ursache.getMessage();
+            new OwnAlert().errorAlert("Datenbankvorgang fehlgeschlagen: " + nachricht);
+        });
+
+        // Dialoge benötigen auch vor dem Anzeigen des Hauptfensters eine Scene am Besitzer.
+        primaryStage.setScene(new Scene(new VBox()));
+
+        // Lokal arbeitet der Sportleiter ohne Anmeldung; nur online wird ein Zugang abgefragt.
+        datenService = datenServiceFestlegen(primaryStage);
+        if (datenService == null) {
+            Platform.exit();
+            return;
+        }
+        controller = new Controller(this, datenService);
 
         //Tabellen anlegen wenn sie noch nicht existieren
         controller.createTableIfNotExists();
@@ -105,17 +135,40 @@ public class Main extends Application {
 		MenuBar menuBar = new MenuBar();
 		Menu fileMenu = new Menu("Datei");              //Register Datei
 		MenuItem dbOeffnenItem = new MenuItem("Datenbank öffnen…"); //andere Datenbank laden
+		dbOeffnenItem.setDisable(Anwendungskonfiguration.getBetriebsart()
+				.orElse(Betriebsart.SPORTLEITER) == Betriebsart.ONLINE);
 		dbOeffnenItem.setOnAction(event -> {
 			datenbankWechseln(primaryStage);
 		});
 		MenuItem exitItem = new MenuItem("Beenden");    //Programm beenden Auswahl
 		exitItem.setOnAction(event -> {
-			Platform.exit();
+			primaryStage.close();
 		});
 		fileMenu.getItems().add(dbOeffnenItem);
 		fileMenu.getItems().add(exitItem);
 		menuBar.getMenus().add(fileMenu);
 		top.getChildren().add(menuBar);
+
+        offlineHinweis = new Label();
+        offlineHinweis.getStyleClass().add("offline-hinweis");
+        offlineHinweis.setWrapText(true);
+        offlineHinweis.setMaxWidth(Double.MAX_VALUE);
+        offlineHinweis.setVisible(false);
+        offlineHinweis.setManaged(false);
+        top.getChildren().add(offlineHinweis);
+
+        konfliktLoesenButton.setVisible(false);
+        konfliktLoesenButton.setManaged(false);
+        konfliktLoesenButton.setOnAction(event -> versionskonfliktLoesen());
+        top.getChildren().add(konfliktLoesenButton);
+
+        if (datenService instanceof OnlineWettkampfDatenService online) {
+            online.statusListenerHinzufuegen(status ->
+                    Platform.runLater(() -> onlineStatusAnzeigen(status)));
+            primaryStage.setOnCloseRequest(event -> {
+                if (!beendenBestaetigt()) event.consume();
+            });
+        }
 
         //Überschrift
         Text ueberschrift = new Text("Blasrohr - Wettkampf - Manager");
@@ -572,21 +625,176 @@ public class Main extends Application {
         rechts.getChildren().add(tagAnzeige);
 
 
-        Scene scene = (new Scene(top, 1300, 900)); //Fenstereinstellungens-Parameter
+        // Auf kleinen Bildschirmen bleibt das komplette Fenster inklusive Titelleiste erreichbar.
+        // Passt der Inhalt nicht vollstaendig hinein, kann er gescrollt werden.
+        ScrollPane scrollPane = new ScrollPane(top);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPannable(true);
+
+        Scene scene = new Scene(scrollPane);
 
         //style.css in dieses Fenster/Szene einbinden
         scene.getStylesheets().add(getClass().getResource("/io/github/manadhion/wettkampf/view/style.css").toExternalForm());
 
+        Rectangle2D arbeitsflaeche = Screen.getPrimary().getVisualBounds();
+        double fensterBreite = Math.min(1300, arbeitsflaeche.getWidth());
+        double fensterHoehe = Math.min(900, arbeitsflaeche.getHeight());
+
         primaryStage.setScene(scene);   //übernimmt Szene scene als Argument
+        primaryStage.setWidth(fensterBreite);
+        primaryStage.setHeight(fensterHoehe);
+        primaryStage.setX(arbeitsflaeche.getMinX() + (arbeitsflaeche.getWidth() - fensterBreite) / 2);
+        primaryStage.setY(arbeitsflaeche.getMinY() + (arbeitsflaeche.getHeight() - fensterHoehe) / 2);
 		primaryStage.show();            //öffnet das Fenster
+
+        if (datenService instanceof OnlineWettkampfDatenService) {
+            aktualisierungPruefen(primaryStage);
+        }
 
     }
 
-    //beim ersten Start festlegen welche Datenbank verwendet wird
+    @Override
+    public void stop() {
+        if (datenService instanceof OnlineWettkampfDatenService online) {
+            online.close();
+        }
+    }
+
+    private void onlineStatusAnzeigen(OnlineWettkampfDatenService.OnlineStatus status) {
+        boolean warnung = !status.verbunden() || status.synchronisationsfehler() != null;
+        offlineHinweis.setVisible(warnung);
+        offlineHinweis.setManaged(warnung);
+        konfliktLoesenButton.setVisible(status.versionskonflikt());
+        konfliktLoesenButton.setManaged(status.versionskonflikt());
+        konfliktLoesenButton.setDisable(status.konfliktloesungLaeuft());
+        konfliktLoesenButton.setText(status.konfliktloesungLaeuft()
+                ? "Versionskonflikt wird gelöst …" : "Versionskonflikt lösen …");
+
+        if (vorherigerVersionskonflikt && !status.versionskonflikt() && saisonCombo != null) {
+            saisonComboAktualisieren();
+        }
+        vorherigerVersionskonflikt = status.versionskonflikt();
+        if (!warnung) return;
+
+        long anzahl = status.ausstehendeAenderungen();
+        if (status.synchronisationsfehler() != null) {
+            offlineHinweis.setText("SYNCHRONISATION FEHLGESCHLAGEN – "
+                    + status.synchronisationsfehler() + " – " + aenderungsText(anzahl));
+        } else {
+            offlineHinweis.setText("OFFLINE-NOTBETRIEB – Keine Verbindung zum Server. "
+                    + aenderungsText(anzahl)
+                    + " Die Daten gehen verloren, wenn das Programm vor der Synchronisation beendet wird.");
+        }
+    }
+
+    private void aktualisierungPruefen(Stage primaryStage) {
+        new GitHubAktualisierungsdienst().neuereVersionPruefen().thenAccept(ergebnis ->
+                ergebnis.ifPresent(aktualisierung -> Platform.runLater(() -> {
+                    if (!primaryStage.isShowing()) return;
+                    ButtonType herunterladen = new ButtonType("Update herunterladen");
+                    Alert hinweis = new Alert(AlertType.INFORMATION, "", herunterladen,
+                            ButtonType.CANCEL);
+                    hinweis.initOwner(primaryStage);
+                    hinweis.setTitle("Update verfügbar");
+                    hinweis.setHeaderText("Version " + aktualisierung.version()
+                            + " ist verfügbar.");
+                    hinweis.setContentText("Installiert ist Version " + Anwendungsversion.aktuell()
+                            + ". Speichern und synchronisieren Sie vor dem Update alle Änderungen, "
+                            + "schließen Sie anschließend das Programm und starten Sie den "
+                            + "heruntergeladenen Installer.");
+                    if (hinweis.showAndWait().filter(herunterladen::equals).isPresent()) {
+                        getHostServices().showDocument(
+                                aktualisierung.downloadAdresse().toString());
+                    }
+                })));
+    }
+
+    private void versionskonfliktLoesen() {
+        if (!(datenService instanceof OnlineWettkampfDatenService online)) return;
+
+        ButtonType serverstand = new ButtonType("Serverstand verwenden");
+        ButtonType lokalerStand = new ButtonType("Lokalen Stand verwenden");
+        Alert auswahl = new Alert(AlertType.WARNING, "", serverstand, lokalerStand,
+                ButtonType.CANCEL);
+        auswahl.setTitle("Versionskonflikt lösen");
+        auswahl.setHeaderText("Server und dieses Programm enthalten unterschiedliche Änderungen.");
+        auswahl.setContentText("Eine automatische Zusammenführung ist nicht sicher möglich. "
+                + "Wählen Sie bewusst, welcher vollständige Stand erhalten bleiben soll.");
+        Optional<ButtonType> wahl = auswahl.showAndWait();
+        if (wahl.isEmpty() || wahl.get() == ButtonType.CANCEL) return;
+
+        boolean serverGewählt = wahl.get() == serverstand;
+        ButtonType endgueltig = new ButtonType("Ja, endgültig fortfahren");
+        Alert bestaetigung = new Alert(AlertType.CONFIRMATION, "", endgueltig,
+                ButtonType.CANCEL);
+        bestaetigung.setTitle("Auswahl bestätigen");
+        bestaetigung.setHeaderText(serverGewählt
+                ? "Die nicht synchronisierten lokalen Änderungen werden verworfen."
+                : "Der aktuelle Serverstand wird durch den lokalen Stand ersetzt.");
+        bestaetigung.setContentText(serverGewählt
+                ? "Der neueste Serverstand wird geladen. Dieser Schritt kann nicht rückgängig gemacht werden."
+                : "Abweichende Änderungen auf dem Server gehen verloren. Dieser Schritt kann nicht rückgängig gemacht werden.");
+        Optional<ButtonType> bestaetigt = bestaetigung.showAndWait();
+        if (bestaetigt.filter(endgueltig::equals).isEmpty()) return;
+
+        if (serverGewählt) online.serverstandVerwenden();
+        else online.lokalenStandVerwenden();
+    }
+
+    private String aenderungsText(long anzahl) {
+        if (anzahl == 0) return "Neue Änderungen werden nur temporär gespeichert.";
+        return anzahl + (anzahl == 1 ? " Änderung ist" : " Änderungen sind")
+                + " noch nicht mit dem Server synchronisiert.";
+    }
+
+    private boolean beendenBestaetigt() {
+        if (!(datenService instanceof OnlineWettkampfDatenService online)
+                || !online.hatNichtSynchronisierteAenderungen()) {
+            return true;
+        }
+        ButtonType trotzdem = new ButtonType("Trotzdem beenden");
+        Alert warnung = new Alert(AlertType.WARNING, "", trotzdem, ButtonType.CANCEL);
+        warnung.setTitle("Nicht synchronisierte Änderungen");
+        warnung.setHeaderText("Beim Beenden gehen die temporären Änderungen verloren.");
+        warnung.setContentText("Die Verbindung zum Server ist noch nicht wiederhergestellt oder die "
+                + "Synchronisation ist noch nicht abgeschlossen.");
+        return warnung.showAndWait().filter(trotzdem::equals).isPresent();
+    }
+
+    private WettkampfDatenService datenServiceFestlegen(Stage primaryStage) {
+        ButtonType lokalButton = new ButtonType("Sportleiter – lokal");
+        ButtonType onlineButton = new ButtonType("Online-Datenbank");
+        Alert auswahl = new Alert(AlertType.CONFIRMATION, "", lokalButton, onlineButton,
+                ButtonType.CANCEL);
+        auswahl.initOwner(primaryStage);
+        auswahl.setTitle("Betriebsart");
+        auswahl.setHeaderText("Womit möchten Sie arbeiten?");
+        Optional<ButtonType> wahl = auswahl.showAndWait();
+
+        if (wahl.isEmpty() || wahl.get() == ButtonType.CANCEL) {
+            return null;
+        }
+        if (wahl.get() == onlineButton) {
+            Optional<OnlineWettkampfDatenService> online =
+                    OnlineAnmeldungDialog.anzeigen(primaryStage);
+            if (online.isEmpty()) {
+                return null;
+            }
+            Anwendungskonfiguration.setBetriebsart(Betriebsart.ONLINE);
+            return online.get();
+        }
+
+        Anwendungskonfiguration.setBetriebsart(Betriebsart.SPORTLEITER);
+        datenbankFestlegen(primaryStage);
+        return DatenServiceFabrik.erstellen(Betriebsart.SPORTLEITER);
+    }
+
+    //beim ersten lokalen Start festlegen welche Datenbank verwendet wird
     private void datenbankFestlegen(Stage primaryStage) {
 
         //ist schon eine Datenbank festgelegt, kann sie direkt weiterverwendet werden
         if (DBController.hatDatenbank()) {
+            Anwendungskonfiguration.setBetriebsart(Betriebsart.SPORTLEITER);
             return;
         }
 
@@ -610,6 +818,7 @@ public class Main extends Application {
         if (!DBController.hatDatenbank()) {
             DBController.setDatenbankPfad(System.getProperty("user.home") + "/wettkampf_db.db");
         }
+        Anwendungskonfiguration.setBetriebsart(Betriebsart.SPORTLEITER);
     }
 
     //eine Datenbank-Datei auswählen und als aktive Datenbank merken, gibt zurück ob eine gewählt wurde
@@ -633,6 +842,7 @@ public class Main extends Application {
         }
 
         DBController.setDatenbankPfad(datei.getAbsolutePath());
+        Anwendungskonfiguration.setBetriebsart(Betriebsart.SPORTLEITER);
         return true;
     }
 
@@ -655,8 +865,14 @@ public class Main extends Application {
 
     //Fenstertitel auf die aktuell geöffnete Datenbank setzen
     private void titelAktualisieren(Stage primaryStage) {
+        String anwendung = "Blasrohr-Wettkampf-Manager " + Anwendungsversion.aktuell();
+        if (Anwendungskonfiguration.getBetriebsart().orElse(Betriebsart.SPORTLEITER)
+                == Betriebsart.ONLINE) {
+            primaryStage.setTitle(anwendung + " — Online-Datenbank");
+            return;
+        }
         String dateiname = new File(DBController.getDatenbankPfad()).getName();
-        primaryStage.setTitle("Blasrohr-Wettkampf-Manager — " + dateiname);
+        primaryStage.setTitle(anwendung + " — Sportleiter — " + dateiname);
     }
 
     //Ergebnisfeld je nach Auswahl füllen und sperren bzw. freigeben
@@ -705,7 +921,17 @@ public class Main extends Application {
         }
 
         //Text in eine Zahl umwandeln (durch den Filter sind nur Ziffern möglich) und speichern
-        int wert = Integer.parseInt(ergebnisFeld.getText());
+        int wert;
+        try {
+            wert = Integer.parseInt(ergebnisFeld.getText());
+        } catch (NumberFormatException ex) {
+            new OwnAlert().errorAlert("Das Ergebnis ist keine gültige Zahl.");
+            return;
+        }
+        if (wert < 0 || wert > 600) {
+            new OwnAlert().errorAlert("Das Ergebnis muss zwischen 0 und 600 liegen.");
+            return;
+        }
         controller.ergebnisSpeichern(schuetze.getId(), tag.getId(), wert);
     }
 

@@ -57,7 +57,7 @@ public class MannschaftDAO {
 			ps.executeUpdate();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Mannschaft konnte nicht gespeichert werden", e);
 		}
 
     }
@@ -82,7 +82,7 @@ public class MannschaftDAO {
 			ps.executeUpdate();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Mannschaft konnte nicht aktualisiert werden", e);
 		}
 
     }
@@ -113,11 +113,31 @@ public class MannschaftDAO {
 			}
 			
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Mannschaften konnten nicht geladen werden", e);
 		}
 
         return mannschaften;
 
+    }
+
+    public List<Mannschaft> mannschaftenVonSaison(String saisonID) {
+        List<Mannschaft> mannschaften = new ArrayList<>();
+        String sql = "SELECT DISTINCT m.id,m.name,m.klasse,l.name FROM mannschaft m "
+                + "LEFT JOIN liga l ON l.id=m.klasse WHERE m.id IN ("
+                + "SELECT b.heim FROM begegnung b JOIN wettkampftage w ON w.id=b.wettkampftag WHERE w.saisonID=? "
+                + "UNION SELECT b.gegner FROM begegnung b JOIN wettkampftage w ON w.id=b.wettkampftag WHERE w.saisonID=?) "
+                + "ORDER BY m.name COLLATE NOCASE";
+        try (Connection con = DBController.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, saisonID);
+            ps.setString(2, saisonID);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                mannschaften.add(new Mannschaft(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Mannschaften der Saison konnten nicht geladen werden", e);
+        }
+        return mannschaften;
     }
 
     /**
@@ -146,13 +166,11 @@ public class MannschaftDAO {
                 m = new Mannschaft(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4));
             }
         
-			return m;
-			
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Mannschaft konnte nicht geladen werden", e);
 		}
         
-        return null;
+        return m;
     }
 
     /**
@@ -161,7 +179,10 @@ public class MannschaftDAO {
      * @return Anzahl der gelöschten Zeilen, größer 0 wenn das Löschen erfolgreich war
      */
     public int delete(String id) {
-        String sql = "DELETE FROM mannschaft WHERE id=?;";
+        String sql = "DELETE FROM mannschaft WHERE id=? "
+                + "AND NOT EXISTS (SELECT 1 FROM begegnung WHERE heim=? OR gegner=?) "
+                + "AND NOT EXISTS (SELECT 1 FROM schuetze WHERE mannschaftid=?) "
+                + "AND NOT EXISTS (SELECT 1 FROM saison_schuetze WHERE mannschaftID=?)";
 
         //return Statement
         int erg = 0;
@@ -169,10 +190,14 @@ public class MannschaftDAO {
         //Löschvorgang
         try(Connection con = DBController.getConnection();
 				PreparedStatement ps = con.prepareStatement(sql)){
-			ps.setString(1, id);;
+			ps.setString(1, id);
+			ps.setString(2, id);
+			ps.setString(3, id);
+			ps.setString(4, id);
+			ps.setString(5, id);
 			erg = ps.executeUpdate();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Mannschaft konnte nicht gelöscht werden", e);
 		}
 		
 		//wenn erg >0 ist war das Löschen erfolgreich

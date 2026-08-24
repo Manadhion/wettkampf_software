@@ -24,15 +24,44 @@ public class BegegnungDAO {
                 + "id TEXT PRIMARY KEY,"
                 + "heim TEXT REFERENCES mannschaft(id) NOT NULL,"        //Referenz zur id der Mannschaft die als Heim antritt
                 + "gegner TEXT REFERENCES mannschaft(id) NOT NULL,"      //Referenz zur id der Mannschaft die als Gast antritt
-                + "wettkampftag TEXT REFERENCES wettkampftage(id) NOT NULL" //Referenz zur id des Wettkampftages
+                + "wettkampftag TEXT REFERENCES wettkampftage(id) NOT NULL," //Referenz zur id des Wettkampftages
+                + "liga TEXT REFERENCES liga(id),"
+                + "ligaName TEXT,"
+                + "heimName TEXT, gegnerName TEXT,"
+                + "CHECK(heim <> gegner)"
                 + ")";
         
         try (Connection con = DBController.getConnection();
             Statement stmt = con.createStatement()) {
                 stmt.execute(sql);
+                spalteFallsNoetigErgaenzen(con, "liga", "TEXT REFERENCES liga(id)");
+                spalteFallsNoetigErgaenzen(con, "ligaName", "TEXT");
+                spalteFallsNoetigErgaenzen(con, "heimName", "TEXT");
+                spalteFallsNoetigErgaenzen(con, "gegnerName", "TEXT");
+                stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS ux_begegnung_tag_paar "
+                        + "ON begegnung(wettkampftag, CASE WHEN heim<gegner THEN heim ELSE gegner END, "
+                        + "CASE WHEN heim<gegner THEN gegner ELSE heim END)");
+                stmt.execute("CREATE TRIGGER IF NOT EXISTS trg_begegnung_nicht_selbst_insert BEFORE INSERT ON begegnung "
+                        + "WHEN NEW.heim=NEW.gegner BEGIN SELECT RAISE(ABORT,'Mannschaft kann nicht gegen sich selbst antreten'); END");
+                stmt.execute("CREATE TRIGGER IF NOT EXISTS trg_begegnung_nicht_selbst_update BEFORE UPDATE OF heim,gegner ON begegnung "
+                        + "WHEN NEW.heim=NEW.gegner BEGIN SELECT RAISE(ABORT,'Mannschaft kann nicht gegen sich selbst antreten'); END");
         } catch (SQLException e) {
-	        e.printStackTrace();
+	        throw new RuntimeException("Tabelle 'begegnung' konnte nicht vorbereitet werden", e);
 	    }
+    }
+
+    private void spalteFallsNoetigErgaenzen(Connection con, String name, String definition) throws SQLException {
+        try (Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery("PRAGMA table_info(begegnung)")) {
+            while (rs.next()) {
+                if (name.equalsIgnoreCase(rs.getString("name"))) {
+                    return;
+                }
+            }
+        }
+        try (Statement stmt = con.createStatement()) {
+            stmt.execute("ALTER TABLE begegnung ADD COLUMN " + name + " " + definition);
+        }
     }
 
     /**
@@ -42,8 +71,9 @@ public class BegegnungDAO {
     public void insert(Begegnung begegnung) {
         
         //erstellen oder ignorieren wenn es die Entität bereits gibt
-        String sql = "INSERT OR IGNORE INTO begegnung(id, heim, gegner, wettkampftag) "
-                + "VALUES(?,?,?,?)";
+        String sql = "INSERT OR IGNORE INTO begegnung(id, heim, gegner, wettkampftag, liga, ligaName,heimName,gegnerName) "
+                + "SELECT ?,?,?,?,h.klasse,l.name,h.name,g.name FROM mannschaft h "
+                + "JOIN mannschaft g ON g.id=? LEFT JOIN liga l ON l.id=h.klasse WHERE h.id=?";
 
         //Verbindung zu DB und arbeit ausführen
         try (Connection con = DBController.getConnection();
@@ -54,6 +84,8 @@ public class BegegnungDAO {
             ps.setString(2, begegnung.getHeim());
             ps.setString(3, begegnung.getGegner());
             ps.setString(4, begegnung.getWettkampftag());
+			ps.setString(5, begegnung.getGegner());
+			ps.setString(6, begegnung.getHeim());
 			
 			ps.executeUpdate();
 
@@ -79,7 +111,7 @@ public class BegegnungDAO {
 			ps.setString(1, id);;
 			erg = ps.executeUpdate();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Begegnung konnte nicht gelöscht werden", e);
 		}
 		
 		//wenn erg >0 ist war das Löschen erfolgreich
@@ -105,16 +137,33 @@ public class BegegnungDAO {
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
                 //für jede Zeile ein neues Objekt von Wettkampftage erzeugen und der Liste hinzufügen
-				Begegnung b = new Begegnung(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4));
+				Begegnung b = new Begegnung(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4),
+                        rs.getString("liga"), rs.getString("ligaName"), rs.getString("heimName"),
+                        rs.getString("gegnerName"));
 
                 begegnungen.add(b);
 			}
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Begegnungen konnten nicht geladen werden", e);
 		}
 
         return begegnungen;
+    }
+
+    public boolean existiert(String wettkampftag, String mannschaftA, String mannschaftB) {
+        String sql = "SELECT 1 FROM begegnung WHERE wettkampftag=? "
+                + "AND ((heim=? AND gegner=?) OR (heim=? AND gegner=?))";
+        try (Connection con = DBController.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, wettkampftag);
+            ps.setString(2, mannschaftA);
+            ps.setString(3, mannschaftB);
+            ps.setString(4, mannschaftB);
+            ps.setString(5, mannschaftA);
+            return ps.executeQuery().next();
+        } catch (SQLException e) {
+            throw new RuntimeException("Begegnung konnte nicht geprüft werden", e);
+        }
     }
 
     

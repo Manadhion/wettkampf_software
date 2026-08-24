@@ -103,6 +103,16 @@ public class BegegnungView extends Stage {
                 return;
             }
 
+            if (heim.getId().equals(gegner.getId())) {
+                alert.errorAlert("Eine Mannschaft kann nicht gegen sich selbst antreten!");
+                return;
+            }
+
+            if (controller.begegnungExistiert(tagID, heim.getId(), gegner.getId())) {
+                alert.errorAlert("Diese Begegnung ist an diesem Wettkampftag bereits angelegt!");
+                return;
+            }
+
             controller.neueBegegnungSpeichern(new Begegnung(heim.getId(), gegner.getId(), tagID));
 
         });

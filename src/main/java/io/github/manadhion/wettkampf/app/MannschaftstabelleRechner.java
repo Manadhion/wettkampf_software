@@ -51,11 +51,6 @@ public class MannschaftstabelleRechner {
 
         //Mannschafts-ID -> Tabellenzeile, mit allen Mannschaften der Liga vorbelegt (so stehen auch Mannschaften ohne Begegnung drin)
         Map<String, TabellenZeile> tabelle = new LinkedHashMap<>();
-        for (Mannschaft m : controller.alleMannschaften()) {
-            if (m.getKlasse().equals(liga.getId())) {
-                tabelle.put(m.getId(), new TabellenZeile(m.getName()));
-            }
-        }
 
         //jeden Wettkampftag der Saison durchgehen
         for (Wettkampftage tag : controller.wettkampftageVonSaison(saisonID)) {
@@ -67,6 +62,17 @@ public class MannschaftstabelleRechner {
 
             //jede Begegnung dieses Tages durchgehen
             for (Begegnung b : controller.begegnungenAnDiesemTag(tag.getId())) {
+
+                Mannschaft heim = controller.mannschaftMitID(b.getHeim());
+                String begegnungsLiga = b.getLiga() == null ? heim.getKlasse() : b.getLiga();
+                if (!begegnungsLiga.equals(liga.getId())) {
+                    continue;
+                }
+                Mannschaft gegner = controller.mannschaftMitID(b.getGegner());
+                String heimName = b.getHeimName() == null ? heim.getName() : b.getHeimName();
+                String gegnerName = b.getGegnerName() == null ? gegner.getName() : b.getGegnerName();
+                tabelle.putIfAbsent(heim.getId(), new TabellenZeile(heimName));
+                tabelle.putIfAbsent(gegner.getId(), new TabellenZeile(gegnerName));
 
                 TabellenZeile heimZeile = tabelle.get(b.getHeim());
                 TabellenZeile gegnerZeile = tabelle.get(b.getGegner());
