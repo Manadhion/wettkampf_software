@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +18,7 @@ import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
+import com.lowagie.text.Image;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
@@ -37,6 +39,8 @@ import io.github.manadhion.wettkampf.data.Wettkampftage;
  * Erzeugt das Saison-PDF: je Liga die Einzel- und Mannschaftsergebnisse bis zu einem Stichtag.
  */
 public class SaisonPdf {
+
+    private static final String GAULOGO_RESSOURCE = "/io/github/manadhion/wettkampf/gaulogo.png";
 
     //Datumsformat für Kopfzeilen und Rundenüberschriften
     private static final DateTimeFormatter DATUM_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
@@ -128,10 +132,10 @@ public class SaisonPdf {
     }
 
     //Blatt "Einzelergebnisse" einer Liga: je Schütze eine Zeile mit Ergebnis je Wettkampftag und Durchschnitt
-    private void einzelergebnisse(Document doc, Liga liga, Saison saison, List<Wettkampftage> tage) throws DocumentException {
+    private void einzelergebnisse(Document doc, Liga liga, Saison saison, List<Wettkampftage> tage)
+            throws DocumentException, IOException {
 
-        doc.add(new Paragraph("Einzelergebnisse " + liga.getLigaName(), TITEL));
-        doc.add(untertitel(saison, tage));
+        kopfbereich(doc, "Einzelergebnisse " + liga.getLigaName(), saison, tage);
 
         //Spalten: Verein, Name, Durchschnitt und je Wettkampftag eine RWK-Spalte
         PdfPTable tabelle = new PdfPTable(3 + tage.size());
@@ -218,10 +222,10 @@ public class SaisonPdf {
     }
 
     //Blatt "Mannschaftsergebnisse" einer Liga: Tabelle bis Stichtag und darunter die absolvierten Wettkämpfe
-    private void mannschaftsergebnisse(Document doc, Liga liga, Saison saison, Wettkampftage stichtag, List<Wettkampftage> tage) throws DocumentException {
+    private void mannschaftsergebnisse(Document doc, Liga liga, Saison saison, Wettkampftage stichtag,
+            List<Wettkampftage> tage) throws DocumentException, IOException {
 
-        doc.add(new Paragraph("Mannschaftsergebnisse " + liga.getLigaName(), TITEL));
-        doc.add(untertitel(saison, tage));
+        kopfbereich(doc, "Mannschaftsergebnisse " + liga.getLigaName(), saison, tage);
 
         //Tabelle: Rang, Mannschaft, Mannschaftspunkte, Ringe – bis zum Stichtag berechnet
         MannschaftstabelleRechner rechner = new MannschaftstabelleRechner(controller);
@@ -358,6 +362,39 @@ public class SaisonPdf {
         String saisonName = (saison == null) ? "?" : saison.toString();
         String stand = tage.isEmpty() ? "" : tage.get(tage.size() - 1).getDatum().format(DATUM_FORMAT);
         return new Paragraph("Saison " + saisonName + "   ·   Stand: " + stand, UNTERTITEL);
+    }
+
+    //Einheitlicher Seitenkopf: fachliche Angaben links, Gau-Wappen dezent rechts
+    private void kopfbereich(Document doc, String titel, Saison saison, List<Wettkampftage> tage)
+            throws DocumentException, IOException {
+        PdfPTable kopfbereich = new PdfPTable(2);
+        kopfbereich.setWidthPercentage(100);
+        kopfbereich.setWidths(new float[] { 10f, 1f });
+        kopfbereich.setSpacingAfter(4);
+        kopfbereich.setKeepTogether(true);
+
+        PdfPCell textZelle = new PdfPCell();
+        textZelle.setBorder(PdfPCell.NO_BORDER);
+        textZelle.setPadding(0);
+        textZelle.setVerticalAlignment(Element.ALIGN_TOP);
+        textZelle.addElement(new Paragraph(titel, TITEL));
+        textZelle.addElement(untertitel(saison, tage));
+        kopfbereich.addCell(textZelle);
+
+        URL logoUrl = SaisonPdf.class.getResource(GAULOGO_RESSOURCE);
+        if (logoUrl == null) {
+            throw new IOException("Gaulogo-Ressource fehlt: " + GAULOGO_RESSOURCE);
+        }
+        Image logo = Image.getInstance(logoUrl);
+        logo.scaleToFit(48, 56);
+        PdfPCell logoZelle = new PdfPCell(logo, false);
+        logoZelle.setBorder(PdfPCell.NO_BORDER);
+        logoZelle.setPadding(0);
+        logoZelle.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        logoZelle.setVerticalAlignment(Element.ALIGN_TOP);
+        kopfbereich.addCell(logoZelle);
+
+        doc.add(kopfbereich);
     }
 
     //eine Kopf-Zelle der Tabelle

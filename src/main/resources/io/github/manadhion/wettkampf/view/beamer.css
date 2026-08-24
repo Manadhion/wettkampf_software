@@ -11,6 +11,13 @@
     -fx-background-color: #1b263b;
 }
 
+.beamer-logo-rahmen {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 8, 0, 0, 2);
+}
+
 .beamer-saison {
     -fx-fill: #e0e1dd;
     -fx-font-size: 32px;

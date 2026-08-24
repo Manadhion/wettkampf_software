@@ -37,7 +37,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -181,8 +183,12 @@ public class BeamerView extends Stage {
         Region abstand = new Region();
         HBox.setHgrow(abstand, Priority.ALWAYS);
 
-        HBox zeileOben = new HBox(saisonText, abstand, pauseText, uhrText);
+        StackPane logoLinks = logoRahmenAufbauen();
+        StackPane logoRechts = logoRahmenAufbauen();
+
+        HBox zeileOben = new HBox(logoLinks, saisonText, abstand, pauseText, uhrText, logoRechts);
         zeileOben.setAlignment(Pos.CENTER);
+        zeileOben.setSpacing(20);
 
         //Liga-Name groß und zentriert
         ligaText.getStyleClass().add("beamer-liga"); //Aufrufname für die .css Datei
@@ -192,6 +198,14 @@ public class BeamerView extends Stage {
         VBox kopf = new VBox(zeileOben, ligaZeile);
         kopf.getStyleClass().add("beamer-kopf"); //Aufrufname für die .css Datei
         return kopf;
+    }
+
+    //Das Gau-Wappen steht links und rechts gleich groß in der Beamer-Kopfzeile.
+    private StackPane logoRahmenAufbauen() {
+        ImageView gauLogo = GauLogo.ansicht(70);
+        StackPane logoRahmen = new StackPane(gauLogo);
+        logoRahmen.getStyleClass().add("beamer-logo-rahmen");
+        return logoRahmen;
     }
 
     //die Anzeige auf die aktuelle Liga setzen

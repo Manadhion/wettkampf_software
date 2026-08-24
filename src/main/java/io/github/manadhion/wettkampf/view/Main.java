@@ -31,6 +31,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
+import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
@@ -173,7 +174,10 @@ public class Main extends Application {
         //Überschrift
         Text ueberschrift = new Text("Blasrohr - Wettkampf - Manager");
         ueberschrift.getStyleClass().add("ueberschrift"); //Aufrufname für die .css Datei
-        top.getChildren().add(ueberschrift);       
+        ImageView gauLogo = GauLogo.ansicht(62);
+        HBox anwendungsKopf = new HBox(gauLogo, ueberschrift);
+        anwendungsKopf.getStyleClass().add("anwendungs-kopf");
+        top.getChildren().add(anwendungsKopf);
 
         //Container für beide Bildhälften
         HBox haelften = new HBox();

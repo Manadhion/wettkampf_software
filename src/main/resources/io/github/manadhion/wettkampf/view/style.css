@@ -34,6 +34,13 @@
     -fx-fill: #1f2937;         /* Textfarbe */
 }
 
+/* Programmkopf mit Gau-Wappen, ohne zusätzlichen Text neben dem selbsterklärenden Logo */
+.anwendungs-kopf {
+    -fx-alignment: center;
+    -fx-spacing: 14;
+    -fx-padding: 8 0 5 0;
+}
+
 /*Containerhälften - VBox links rechts*/
 .upper-container {
     -fx-background-color: white;
