@@ -86,6 +86,20 @@ Die Produktionsadresse bleibt fest im Programm hinterlegt. Der ungenutzte
 Preferences-Schlüssel sowie die nicht verwendeten Methoden zum freien Speichern
 einer abweichenden Serveradresse wurden entfernt.
 
+### Versions- und Updateprüfung
+
+Ab Version 1.3.0 prüft der Desktopclient nach einem erfolgreichen Start im
+Online-Betrieb einmalig GitHubs öffentliches neuestes Release. Die Prüfung
+läuft im Hintergrund und hat keinen Einfluss auf Anmeldung, Wettkampfbetrieb
+oder Synchronisation. Netzwerk- und Formatfehler werden ohne Störung des
+Betriebs ignoriert.
+
+Ist eine numerisch höhere Version verfügbar, erklärt ein Dialog den sicheren
+Wechsel und öffnet nur nach Bestätigung den direkten Installer-Download im
+Standardbrowser. Die Anwendung beendet oder ersetzt sich nie ungefragt selbst.
+Vor der Installation müssen vorhandene Änderungen synchronisiert und das
+Programm geschlossen werden.
+
 ### Portable Windows-Anwendung
 
 Das portable App-Verzeichnis wurde erfolgreich mit `jlink` und `jpackage`

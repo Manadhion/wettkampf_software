@@ -217,6 +217,10 @@ Ergebnis: `target/reports/apidocs/index.html` im Browser öffnen.
 
 ### Windows-Installer / .exe bauen
 
+Der jeweils aktuelle öffentliche Installer ist dauerhaft unter
+<https://github.com/Manadhion/wettkampf_software/releases/latest> erreichbar.
+Vereine können diesen Link direkt zum Herunterladen verwenden.
+
 Aus dem Projekt lässt sich eine eigenständige Windows-Anwendung mit
 eingebettetem Java erzeugen – der Zielrechner braucht dann kein installiertes
 Java. Ein Skript erledigt die ganze Kette (`mvn package` → Abhängigkeiten
@@ -256,3 +260,11 @@ Voraussetzungen:
 
 Veröffentlicht unter der [MIT-Lizenz](LICENSE) – frei nutzbar, veränderbar und
 weitergebbar, auch von Vereinen.
+
+## Signatur und Datenschutz
+
+- [Code signing policy](CODE-SIGNING-POLICY.md)
+- [Datenschutzinformation](PRIVACY.md)
+- [Technische SignPath-Einrichtung](docs/SIGNPATH-EINRICHTUNG.md)
+
+Free code signing provided by SignPath.io, certificate by SignPath Foundation.

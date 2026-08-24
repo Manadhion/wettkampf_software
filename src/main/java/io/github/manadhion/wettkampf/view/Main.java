@@ -45,9 +45,11 @@ import java.util.function.UnaryOperator;
 
 import io.github.manadhion.wettkampf.app.Controller;
 import io.github.manadhion.wettkampf.app.DBController;
+import io.github.manadhion.wettkampf.app.Anwendungsversion;
 import io.github.manadhion.wettkampf.app.Anwendungskonfiguration;
 import io.github.manadhion.wettkampf.app.Betriebsart;
 import io.github.manadhion.wettkampf.app.DatenServiceFabrik;
+import io.github.manadhion.wettkampf.app.GitHubAktualisierungsdienst;
 import io.github.manadhion.wettkampf.app.OnlineWettkampfDatenService;
 import io.github.manadhion.wettkampf.app.WettkampfDatenService;
 import io.github.manadhion.wettkampf.data.Begegnung;
@@ -645,6 +647,10 @@ public class Main extends Application {
         primaryStage.setY(arbeitsflaeche.getMinY() + (arbeitsflaeche.getHeight() - fensterHoehe) / 2);
 		primaryStage.show();            //öffnet das Fenster
 
+        if (datenService instanceof OnlineWettkampfDatenService) {
+            aktualisierungPruefen(primaryStage);
+        }
+
     }
 
     @Override
@@ -679,6 +685,28 @@ public class Main extends Application {
                     + aenderungsText(anzahl)
                     + " Die Daten gehen verloren, wenn das Programm vor der Synchronisation beendet wird.");
         }
+    }
+
+    private void aktualisierungPruefen(Stage primaryStage) {
+        new GitHubAktualisierungsdienst().neuereVersionPruefen().thenAccept(ergebnis ->
+                ergebnis.ifPresent(aktualisierung -> Platform.runLater(() -> {
+                    if (!primaryStage.isShowing()) return;
+                    ButtonType herunterladen = new ButtonType("Update herunterladen");
+                    Alert hinweis = new Alert(AlertType.INFORMATION, "", herunterladen,
+                            ButtonType.CANCEL);
+                    hinweis.initOwner(primaryStage);
+                    hinweis.setTitle("Update verfügbar");
+                    hinweis.setHeaderText("Version " + aktualisierung.version()
+                            + " ist verfügbar.");
+                    hinweis.setContentText("Installiert ist Version " + Anwendungsversion.aktuell()
+                            + ". Speichern und synchronisieren Sie vor dem Update alle Änderungen, "
+                            + "schließen Sie anschließend das Programm und starten Sie den "
+                            + "heruntergeladenen Installer.");
+                    if (hinweis.showAndWait().filter(herunterladen::equals).isPresent()) {
+                        getHostServices().showDocument(
+                                aktualisierung.downloadAdresse().toString());
+                    }
+                })));
     }
 
     private void versionskonfliktLoesen() {
@@ -837,13 +865,14 @@ public class Main extends Application {
 
     //Fenstertitel auf die aktuell geöffnete Datenbank setzen
     private void titelAktualisieren(Stage primaryStage) {
+        String anwendung = "Blasrohr-Wettkampf-Manager " + Anwendungsversion.aktuell();
         if (Anwendungskonfiguration.getBetriebsart().orElse(Betriebsart.SPORTLEITER)
                 == Betriebsart.ONLINE) {
-            primaryStage.setTitle("Blasrohr-Wettkampf-Manager — Online-Datenbank");
+            primaryStage.setTitle(anwendung + " — Online-Datenbank");
             return;
         }
         String dateiname = new File(DBController.getDatenbankPfad()).getName();
-        primaryStage.setTitle("Blasrohr-Wettkampf-Manager — Sportleiter — " + dateiname);
+        primaryStage.setTitle(anwendung + " — Sportleiter — " + dateiname);
     }
 
     //Ergebnisfeld je nach Auswahl füllen und sperren bzw. freigeben

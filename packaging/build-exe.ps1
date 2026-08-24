@@ -25,8 +25,8 @@ param(
     # Installer ("exe") oder portabler Ordner ("app-image")
     [ValidateSet("exe", "msi", "app-image")]
     [string]$Type = "exe",
-    # Versionsnummer der Anwendung (muss mit einer Ziffer beginnen)
-    [string]$Version = "1.0"
+    # Versionsnummer der Anwendung; ohne Angabe wird sie aus pom.xml gelesen.
+    [string]$Version
 )
 
 $ErrorActionPreference = "Stop"
@@ -41,6 +41,15 @@ $UpgradeUuid = "63b98ea8-95aa-4de9-ba2a-894b7b3a14ce"
 # Projektwurzel = ein Ordner ueber diesem Skript
 $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
+
+if (-not $Version) {
+    [xml]$pom = Get-Content (Join-Path $Root "pom.xml") -Raw
+    $Version = [string]$pom.project.version
+}
+if ($Version -notmatch '^[0-9]+(?:\.[0-9]+){0,3}$') {
+    throw "Ungültige Anwendungsversion '$Version'. Erwartet wird z. B. 1.3.0."
+}
+Write-Host "Anwendungsversion: $Version" -ForegroundColor Cyan
 
 # --- JDK-Werkzeuge finden (jpackage, jlink) ---------------------------------
 $javaBin = $null
@@ -62,8 +71,15 @@ Write-Host "JDK-Werkzeuge: $javaBin" -ForegroundColor Cyan
 
 # --- WiX fuer Installer-Typen bereitstellen ---------------------------------
 if ($Type -ne "app-image") {
-    $wixDir = Join-Path $env:LOCALAPPDATA "WiX314"
-    if (Test-Path (Join-Path $wixDir "candle.exe")) {
+    $wixKandidaten = @(
+        (Join-Path $env:LOCALAPPDATA "WiX314"),
+        (Join-Path ${env:ProgramFiles(x86)} "WiX Toolset v3.14\bin"),
+        (Join-Path $env:ProgramFiles "WiX Toolset v3.14\bin")
+    )
+    $wixDir = $wixKandidaten |
+        Where-Object { Test-Path (Join-Path $_ "candle.exe") } |
+        Select-Object -First 1
+    if ($wixDir) {
         $env:PATH = "$wixDir;$env:PATH"
     } elseif (-not (Get-Command candle.exe -ErrorAction SilentlyContinue)) {
         throw @"

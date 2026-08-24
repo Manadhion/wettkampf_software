@@ -1,0 +1,56 @@
+name: Windows-Installer bauen
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  installer:
+    runs-on: windows-2022
+    steps:
+      - name: Quellcode auschecken
+        uses: actions/checkout@v6
+
+      - name: JDK 24 einrichten
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "24"
+          cache: maven
+
+      - name: Tag und Projektversion prüfen
+        shell: pwsh
+        run: |
+          [xml]$pom = Get-Content pom.xml -Raw
+          $version = [string]$pom.project.version
+          if ($env:GITHUB_REF_TYPE -eq "tag" -and $env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Tag $env:GITHUB_REF_NAME passt nicht zur Projektversion $version."
+          }
+          "APP_VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Tests ausführen
+        shell: pwsh
+        run: .\mvnw.cmd --batch-mode verify
+
+      - name: Unsignierten Installer reproduzierbar bauen
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File packaging\build-exe.ps1 -Type exe
+
+      # Diese ID wird nach der Aufnahme bei SignPath vom SignPath-Schritt verwendet.
+      - name: Unsignierten Installer als Build-Artefakt speichern
+        id: upload-unsigned-artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: Blasrohr-Wettkampf-Manager-${{ env.APP_VERSION }}-unsigned
+          path: dist/Blasrohr-Wettkampf-Manager-${{ env.APP_VERSION }}.exe
+          if-no-files-found: error
+          retention-days: 14
