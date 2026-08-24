@@ -59,6 +59,10 @@ bereit. Das Speichern ersetzt alle Fachdaten in einer Transaktion; Konto und
 Sitzungen bleiben unverändert. Dieser Mechanismus setzt voraus, dass zu einem
 Zeitpunkt nur ein Verein schreibend arbeitet.
 
+Snapshots tragen eine globale Revision. Ein Client darf nur den Stand
+zurückschreiben, den er zuvor geladen hat. Ein veralteter Client erhält
+`409 VERSION_KONFLIKT`, bevor Tabelleninhalte verändert werden.
+
 Beim ersten Start wird das ausschließlich vom Betreiber verwendete Online-Konto
 aus `WETTKAMPF_KONTO_NAME` und
 `WETTKAMPF_KONTO_PASSWORT` angelegt. Das Passwort wird nur als BCrypt-Hash
@@ -110,3 +114,38 @@ nicht eingecheckt.
 Der vollständige Umsetzungs- und Prüfstand ist in
 [`docs/ONLINE-UMBAU-2026-08-21.md`](../docs/ONLINE-UMBAU-2026-08-21.md)
 dokumentiert.
+
+## Produktionsbackups
+
+Unter `operations/` liegen die produktiven Betriebsskripte:
+
+- `backup-postgres.sh` erzeugt ein PostgreSQL-Custom-Format-Backup, prüft dessen
+  Inhaltsverzeichnis und bewahrt Sicherungen 30 Tage auf.
+- `backup-restore-pruefen.sh` stellt ein Backup in einer klar getrennten,
+  temporären Testdatenbank wieder her und entfernt diese anschließend.
+- `wettkampf-backup.service` und `wettkampf-backup.timer` starten das Backup
+  sonntags um 02:30 UTC mit einer zufälligen Verzögerung bis 20 Minuten.
+
+Installation auf dem Server:
+
+```bash
+install -m 644 operations/wettkampf-backup.service /etc/systemd/system/
+install -m 644 operations/wettkampf-backup.timer /etc/systemd/system/
+chmod 750 operations/backup-postgres.sh operations/backup-restore-pruefen.sh
+systemctl daemon-reload
+systemctl enable --now wettkampf-backup.timer
+```
+
+Backups liegen mit restriktiven Dateirechten unter
+`/opt/wettkampf-server/backups`. Diese Sicherungen schützen gegen fachliche
+Fehler und ein beschädigtes Datenbankvolume. Eine zusätzliche Kopie außerhalb
+des Servers bleibt erforderlich, um auch einen vollständigen Serverausfall
+abzudecken.
+
+## Schutz der Anmeldung
+
+Die API begrenzt Anmeldungen je Clientadresse auf zehn Versuche pro Minute und
+antwortet danach mit HTTP `429`. Alte abgelaufene oder widerrufene Sitzungen
+werden bei einer späteren Anmeldung bereinigt, sobald sie älter als sieben Tage
+sind. Die Nginx-Vorlage enthält zusätzlich eine passende Begrenzung für
+Neuinstallationen.

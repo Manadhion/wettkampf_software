@@ -1,5 +1,11 @@
 # Online-Umbau – Umsetzungsstand 21.08.2026
 
+> **Nachtrag 24.08.2026:** Wöchentliche automatische Serverbackups,
+> Snapshot-Revisionsschutz,
+> Login-Begrenzung, Sitzungsbereinigung und der portable Build sind inzwischen
+> umgesetzt. Ergebnisse und verbleibende Punkte stehen in
+> [BETRIEBSSICHERHEIT-2026-08-24.md](BETRIEBSSICHERHEIT-2026-08-24.md).
+
 ## 1. Ziel und fachliche Entscheidungen
 
 Der Blasrohr-Wettkampf-Manager besitzt nun zwei strikt getrennte

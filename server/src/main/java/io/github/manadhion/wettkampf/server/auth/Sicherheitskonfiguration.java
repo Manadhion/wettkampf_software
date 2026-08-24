@@ -33,7 +33,17 @@ public class Sicherheitskonfiguration {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, SitzungFilter sitzungFilter)
+    FilterRegistrationBean<AnmeldebegrenzungFilter> anmeldebegrenzungRegistrierung(
+            AnmeldebegrenzungFilter filter) {
+        FilterRegistrationBean<AnmeldebegrenzungFilter> registrierung =
+                new FilterRegistrationBean<>(filter);
+        registrierung.setEnabled(false);
+        return registrierung;
+    }
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http, SitzungFilter sitzungFilter,
+            AnmeldebegrenzungFilter anmeldebegrenzungFilter)
             throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
@@ -45,6 +55,8 @@ public class Sicherheitskonfiguration {
                 .authorizeHttpRequests(anfragen -> anfragen
                         .requestMatchers("/error", "/api/v1/status", "/api/v1/anmeldung").permitAll()
                         .anyRequest().authenticated())
+                .addFilterBefore(anmeldebegrenzungFilter,
+                        UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(sitzungFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

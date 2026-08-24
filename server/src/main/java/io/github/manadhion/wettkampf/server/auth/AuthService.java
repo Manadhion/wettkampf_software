@@ -37,6 +37,7 @@ public class AuthService {
 
     @Transactional
     public AnmeldungAntwort anmelden(String name, String passwort) {
+        repository.alteSitzungenLoeschen(clock.instant().minus(Duration.ofDays(7)));
         Konto konto = repository.kontoMitName(name)
                 .filter(Konto::aktiv)
                 .filter(wert -> passwordEncoder.matches(passwort, wert.passwortHash()))

@@ -25,8 +25,8 @@ public class SynchronisationsController {
     }
 
     @PutMapping
-    public ResponseEntity<Void> speichern(@Valid @RequestBody SynchronisationsSnapshot snapshot) {
-        service.speichern(snapshot);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<SynchronisationsAntwort> speichern(
+            @Valid @RequestBody SynchronisationsSnapshot snapshot) {
+        return ResponseEntity.ok(new SynchronisationsAntwort(service.speichern(snapshot)));
     }
 }

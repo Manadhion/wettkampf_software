@@ -8,7 +8,7 @@ public interface OnlineApi extends AutoCloseable {
 
     void anmelden(String name, char[] passwort);
     default OnlineSnapshot snapshotLaden() { throw fehlt(); }
-    default void snapshotSpeichern(OnlineSnapshot snapshot) { throw fehlt(); }
+    default long snapshotSpeichern(OnlineSnapshot snapshot) { throw fehlt(); }
     default void statusPruefen() { throw fehlt(); }
     List<OnlineSaison> alleSaisons();
     OnlineSaison saisonAnlegen(int name);
@@ -79,7 +79,8 @@ public interface OnlineApi extends AutoCloseable {
             String nachname, String mannschaftId, String mannschaftName,
             String altersklasseId, String altersklasseName) { }
 
-    record OnlineSnapshot(List<OnlineSaison> saisons, List<OnlineLiga> ligen,
+    record OnlineSnapshot(long revision,
+            List<OnlineSaison> saisons, List<OnlineLiga> ligen,
             List<OnlineAltersklasse> altersklassen, List<OnlineMannschaft> mannschaften,
             List<OnlineSchuetze> schuetzen, List<OnlineWettkampftag> wettkampftage,
             List<OnlineBegegnung> begegnungen, List<OnlineSaisonSchuetze> saisonSchuetzen,

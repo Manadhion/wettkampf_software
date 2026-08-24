@@ -38,6 +38,7 @@ class AuthServiceTest {
 
         AnmeldungAntwort antwort = service.anmelden("vereine", "geheim");
 
+        verify(repository).alteSitzungenLoeschen(jetzt.minus(Duration.ofDays(7)));
         verify(repository).sitzungAnlegen(any(UUID.class), eq(konto.id()),
                 gespeicherterHash.capture(), eq(jetzt.plus(Duration.ofHours(12))));
         assertEquals(64, gespeicherterHash.getValue().length());

@@ -1,0 +1,11 @@
+[Unit]
+Description=Wöchentliches PostgreSQL-Backup des Wettkampf-Servers
+
+[Timer]
+OnCalendar=Sun *-*-* 02:30:00 UTC
+RandomizedDelaySec=20m
+Persistent=true
+Unit=wettkampf-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -73,4 +73,13 @@ public class JdbcAuthRepository implements AuthRepository {
                 """, java.sql.Timestamp.from(jetzt), tokenHash);
     }
 
+    @Override
+    public int alteSitzungenLoeschen(Instant grenze) {
+        return jdbcTemplate.update("""
+                DELETE FROM sitzung
+                WHERE laeuft_ab < ?
+                   OR (widerrufen_am IS NOT NULL AND widerrufen_am < ?)
+                """, java.sql.Timestamp.from(grenze), java.sql.Timestamp.from(grenze));
+    }
+
 }

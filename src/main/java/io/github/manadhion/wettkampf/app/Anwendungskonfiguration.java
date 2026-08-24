@@ -16,7 +16,6 @@ public final class Anwendungskonfiguration {
 
     private static final String BETRIEBSART_SCHLUESSEL = "betriebsart";
     private static final String DATENBANKPFAD_SCHLUESSEL = "datenbankPfad";
-    private static final String SERVERADRESSE_SCHLUESSEL = "serverAdresse";
 
     private static final Preferences EINSTELLUNGEN =
             Preferences.userNodeForPackage(Anwendungskonfiguration.class);
@@ -55,35 +54,5 @@ public final class Anwendungskonfiguration {
     /** Speichert den Pfad der lokalen Sportleiter-Datenbank. */
     public static void setSportleiterDatenbankPfad(String pfad) {
         EINSTELLUNGEN.put(DATENBANKPFAD_SCHLUESSEL, Objects.requireNonNull(pfad));
-    }
-
-    /** Gibt die Basisadresse der Vereinsserver-API zurück. */
-    public static Optional<URI> getServerAdresse() {
-        String wert = EINSTELLUNGEN.get(SERVERADRESSE_SCHLUESSEL, null);
-        return wert == null ? Optional.empty() : Optional.of(URI.create(wert));
-    }
-
-    /**
-     * Speichert die Basisadresse der Vereinsserver-API. Zugangsdaten sind kein Bestandteil
-     * dieser Adresse.
-     */
-    public static void setServerAdresse(URI serverAdresse) {
-        URI adresse = Objects.requireNonNull(serverAdresse);
-        if (!istGueltigeServerAdresse(adresse)) {
-            throw new IllegalArgumentException("Die Serveradresse muss eine HTTPS-Adresse ohne Zugangsdaten sein.");
-        }
-        EINSTELLUNGEN.put(SERVERADRESSE_SCHLUESSEL, adresse.toString());
-    }
-
-    static boolean istGueltigeServerAdresse(URI adresse) {
-        if (adresse.getHost() == null || adresse.getUserInfo() != null) {
-            return false;
-        }
-        if ("https".equalsIgnoreCase(adresse.getScheme())) {
-            return true;
-        }
-        return "http".equalsIgnoreCase(adresse.getScheme())
-                && ("localhost".equalsIgnoreCase(adresse.getHost())
-                        || "127.0.0.1".equals(adresse.getHost()));
     }
 }

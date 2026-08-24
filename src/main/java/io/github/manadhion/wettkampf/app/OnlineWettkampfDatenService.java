@@ -63,8 +63,11 @@ public final class OnlineWettkampfDatenService implements WettkampfDatenService,
 
     private long aenderungsstand;
     private long bestaetigterStand;
+    private long serverRevision;
     private volatile boolean verbunden = true;
     private volatile boolean geschlossen;
+    private volatile boolean versionskonflikt;
+    private volatile boolean konfliktloesungLaeuft;
     private volatile String synchronisationsfehler;
 
     public OnlineWettkampfDatenService(OnlineApi apiClient) {
@@ -93,7 +96,7 @@ public final class OnlineWettkampfDatenService implements WettkampfDatenService,
     public OnlineStatus status() {
         synchronized (sperre) {
             return new OnlineStatus(verbunden, aenderungsstand - bestaetigterStand,
-                    synchronisationsfehler);
+                    synchronisationsfehler, versionskonflikt, konfliktloesungLaeuft);
         }
     }
 
@@ -104,6 +107,16 @@ public final class OnlineWettkampfDatenService implements WettkampfDatenService,
     /** Stoesst ausserhalb des regelmaessigen Fuenf-Sekunden-Takts eine erneute Pruefung an. */
     public void synchronisationJetztAnfordern() {
         hintergrund.execute(this::periodischPruefen);
+    }
+
+    /** Verwirft nach ausdruecklicher Bestaetigung die lokalen Aenderungen und laedt den Serverstand. */
+    public void serverstandVerwenden() {
+        konfliktloesungStarten(this::serverstandLaden);
+    }
+
+    /** Schreibt nach ausdruecklicher Bestaetigung den lokalen Stand ueber den aktuellen Serverstand. */
+    public void lokalenStandVerwenden() {
+        konfliktloesungStarten(this::lokalenStandHochladen);
     }
 
     @Override public void initialisieren() { }
@@ -359,36 +372,121 @@ public final class OnlineWettkampfDatenService implements WettkampfDatenService,
         OnlineSnapshot snapshot;
         long stand;
         synchronized (sperre) {
-            if (aenderungsstand == bestaetigterStand) return;
+            if (versionskonflikt || konfliktloesungLaeuft
+                    || aenderungsstand == bestaetigterStand) return;
             stand = aenderungsstand;
             snapshot = snapshotErzeugen();
         }
         try {
-            snapshotSenden(snapshot);
+            long neueRevision = snapshotSenden(snapshot);
             synchronized (sperre) {
+                serverRevision = neueRevision;
                 bestaetigterStand = Math.max(bestaetigterStand, stand);
                 verbunden = true;
+                versionskonflikt = false;
                 synchronisationsfehler = null;
             }
         } catch (OnlineApiException e) {
             synchronized (sperre) {
                 if (e.istVerbindungsfehler()) verbunden = false;
-                else synchronisationsfehler = e.getMessage();
+                else if (e.istVersionskonflikt()) {
+                    versionskonflikt = true;
+                    synchronisationsfehler = "Der Server enthält inzwischen einen neueren Stand. "
+                            + "Die lokalen Änderungen wurden nicht überschrieben. Bitte wählen Sie "
+                            + "bewusst aus, welcher vollständige Stand erhalten bleiben soll.";
+                } else synchronisationsfehler = e.getMessage();
             }
         }
         statusMelden();
     }
 
-    private void snapshotSenden(OnlineSnapshot snapshot) {
+    private long snapshotSenden(OnlineSnapshot snapshot) {
         try {
-            apiClient.snapshotSpeichern(snapshot);
+            return apiClient.snapshotSpeichern(snapshot);
         } catch (OnlineApiException e) {
             if (!e.istAnmeldungAbgelaufen() || kontoName == null || kontoPasswort.length == 0) {
                 throw e;
             }
             apiClient.anmelden(kontoName, kontoPasswort);
-            apiClient.snapshotSpeichern(snapshot);
+            return apiClient.snapshotSpeichern(snapshot);
         }
+    }
+
+    private OnlineSnapshot snapshotLaden() {
+        try {
+            return apiClient.snapshotLaden();
+        } catch (OnlineApiException e) {
+            if (!e.istAnmeldungAbgelaufen() || kontoName == null || kontoPasswort.length == 0) {
+                throw e;
+            }
+            apiClient.anmelden(kontoName, kontoPasswort);
+            return apiClient.snapshotLaden();
+        }
+    }
+
+    private void konfliktloesungStarten(Runnable aufgabe) {
+        synchronized (sperre) {
+            if (geschlossen || !versionskonflikt || konfliktloesungLaeuft) return;
+            konfliktloesungLaeuft = true;
+        }
+        statusMelden();
+        hintergrund.execute(() -> {
+            try {
+                aufgabe.run();
+            } catch (OnlineApiException e) {
+                synchronized (sperre) {
+                    if (e.istVerbindungsfehler()) verbunden = false;
+                    versionskonflikt = true;
+                    synchronisationsfehler = "Der Versionskonflikt konnte nicht gelöst werden: "
+                            + e.getMessage();
+                }
+            } finally {
+                konfliktloesungLaeuft = false;
+                statusMelden();
+            }
+        });
+    }
+
+    private void serverstandLaden() {
+        long standVorLaden;
+        synchronized (sperre) {
+            standVorLaden = aenderungsstand;
+        }
+        OnlineSnapshot snapshot = snapshotLaden();
+        synchronized (sperre) {
+            if (aenderungsstand != standVorLaden) {
+                synchronisationsfehler = "Während der Konfliktlösung wurden weitere lokale "
+                        + "Änderungen vorgenommen. Bitte prüfen Sie den Stand und wählen Sie erneut.";
+                return;
+            }
+            snapshotUebernehmen(snapshot);
+            aenderungsstand = 0;
+            bestaetigterStand = 0;
+            verbunden = true;
+            versionskonflikt = false;
+            synchronisationsfehler = null;
+        }
+    }
+
+    private void lokalenStandHochladen() {
+        OnlineSnapshot serverstand = snapshotLaden();
+        OnlineSnapshot lokalerStand;
+        long stand;
+        synchronized (sperre) {
+            stand = aenderungsstand;
+            lokalerStand = snapshotErzeugen(serverstand.revision());
+        }
+        long neueRevision = snapshotSenden(lokalerStand);
+        boolean weitereAenderungen;
+        synchronized (sperre) {
+            serverRevision = neueRevision;
+            bestaetigterStand = Math.max(bestaetigterStand, stand);
+            verbunden = true;
+            versionskonflikt = false;
+            synchronisationsfehler = null;
+            weitereAenderungen = aenderungsstand > bestaetigterStand;
+        }
+        if (weitereAenderungen) hintergrund.execute(this::synchronisieren);
     }
 
     private void periodischPruefen() {
@@ -412,6 +510,7 @@ public final class OnlineWettkampfDatenService implements WettkampfDatenService,
 
     private void snapshotUebernehmen(OnlineSnapshot snapshot) {
         synchronized (sperre) {
+            serverRevision = snapshot.revision();
             fuellen(saisons, snapshot.saisons(), OnlineSaison::id);
             fuellen(ligen, snapshot.ligen(), OnlineLiga::id);
             fuellen(altersklassen, snapshot.altersklassen(), OnlineAltersklasse::id);
@@ -425,7 +524,12 @@ public final class OnlineWettkampfDatenService implements WettkampfDatenService,
     }
 
     private OnlineSnapshot snapshotErzeugen() {
-        return new OnlineSnapshot(new ArrayList<>(saisons.values()), new ArrayList<>(ligen.values()),
+        return snapshotErzeugen(serverRevision);
+    }
+
+    private OnlineSnapshot snapshotErzeugen(long revision) {
+        return new OnlineSnapshot(revision,
+                new ArrayList<>(saisons.values()), new ArrayList<>(ligen.values()),
                 new ArrayList<>(altersklassen.values()), new ArrayList<>(mannschaften.values()),
                 new ArrayList<>(schuetzen.values()), new ArrayList<>(wettkampftage.values()),
                 new ArrayList<>(begegnungen.values()), new ArrayList<>(saisonSchuetzen.values()),
@@ -511,5 +615,6 @@ public final class OnlineWettkampfDatenService implements WettkampfDatenService,
     }
 
     public record OnlineStatus(boolean verbunden, long ausstehendeAenderungen,
-            String synchronisationsfehler) { }
+            String synchronisationsfehler, boolean versionskonflikt,
+            boolean konfliktloesungLaeuft) { }
 }

@@ -44,6 +44,7 @@ public final class OnlineApiClient implements OnlineApi {
     public OnlineSnapshot snapshotLaden() {
         Map<String, Object> o = objekt(senden("GET", "snapshot", null, true));
         return new OnlineSnapshot(
+                Json.langeZahl(o, "revision"),
                 liste(o, "saisons", this::saison),
                 liste(o, "ligen", this::liga),
                 liste(o, "altersklassen", this::altersklasse),
@@ -56,8 +57,9 @@ public final class OnlineApiClient implements OnlineApi {
     }
 
     @Override
-    public void snapshotSpeichern(OnlineSnapshot snapshot) {
-        senden("PUT", "snapshot", Json.objekt(
+    public long snapshotSpeichern(OnlineSnapshot snapshot) {
+        Map<String, Object> antwort = objekt(senden("PUT", "snapshot", Json.objekt(
+                "revision", snapshot.revision(),
                 "saisons", jsonListe(snapshot.saisons(), OnlineApiClient::saisonJson),
                 "ligen", jsonListe(snapshot.ligen(), OnlineApiClient::ligaJson),
                 "altersklassen", jsonListe(snapshot.altersklassen(), OnlineApiClient::altersklasseJson),
@@ -66,7 +68,8 @@ public final class OnlineApiClient implements OnlineApi {
                 "wettkampftage", jsonListe(snapshot.wettkampftage(), OnlineApiClient::wettkampftagJson),
                 "begegnungen", jsonListe(snapshot.begegnungen(), OnlineApiClient::begegnungJson),
                 "saisonSchuetzen", jsonListe(snapshot.saisonSchuetzen(), OnlineApiClient::saisonSchuetzeJson),
-                "ergebnisse", jsonListe(snapshot.ergebnisse(), OnlineApiClient::ergebnisJson)), true);
+                "ergebnisse", jsonListe(snapshot.ergebnisse(), OnlineApiClient::ergebnisJson)), true));
+        return Json.langeZahl(antwort, "revision");
     }
 
     @Override
@@ -248,9 +251,7 @@ public final class OnlineApiClient implements OnlineApi {
             HttpResponse<String> antwort = httpClient.send(anfrage.build(),
                     HttpResponse.BodyHandlers.ofString());
             if (antwort.statusCode() < 200 || antwort.statusCode() >= 300) {
-                String nachricht = antwort.statusCode() == 401
-                        ? "Online-Anmeldung fehlgeschlagen."
-                        : "Der Server antwortete mit HTTP " + antwort.statusCode() + ".";
+                String nachricht = fehlerNachricht(antwort);
                 throw new OnlineApiException(nachricht, null, antwort.statusCode() >= 500,
                         antwort.statusCode());
             }
@@ -261,6 +262,20 @@ public final class OnlineApiClient implements OnlineApi {
         } catch (IOException e) {
             throw new OnlineApiException("Der Online-Server ist nicht erreichbar.", e, true);
         }
+    }
+
+    private String fehlerNachricht(HttpResponse<String> antwort) {
+        if (antwort.statusCode() == 401) return "Online-Anmeldung fehlgeschlagen.";
+        String inhalt = antwort.body();
+        if (inhalt != null && !inhalt.isBlank()) {
+            try {
+                String nachricht = Json.text(Json.alsObjekt(Json.lesen(inhalt)), "nachricht");
+                if (nachricht != null && !nachricht.isBlank()) return nachricht;
+            } catch (RuntimeException ignoriert) {
+                // Bei einer nicht JSON-formatierten Proxyantwort folgt die HTTP-Meldung.
+            }
+        }
+        return "Der Server antwortete mit HTTP " + antwort.statusCode() + ".";
     }
 
     private static URI apiBasis(URI adresse) {

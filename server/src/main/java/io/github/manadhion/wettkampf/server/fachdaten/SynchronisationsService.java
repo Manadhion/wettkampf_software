@@ -19,6 +19,7 @@ import io.github.manadhion.wettkampf.server.fachdaten.FachdatenModelle.SaisonSch
 import io.github.manadhion.wettkampf.server.fachdaten.FachdatenModelle.Schuetze;
 import io.github.manadhion.wettkampf.server.fachdaten.FachdatenModelle.Wettkampftag;
 import io.github.manadhion.wettkampf.server.fachdaten.SynchronisationsSnapshot.SaisonEintrag;
+import io.github.manadhion.wettkampf.server.web.VersionskonfliktException;
 
 @Service
 public class SynchronisationsService {
@@ -31,6 +32,8 @@ public class SynchronisationsService {
 
     @Transactional(readOnly = true)
     public SynchronisationsSnapshot laden() {
+        Long revision = jdbc.queryForObject(
+                "SELECT version FROM fachdaten_revision WHERE id=TRUE", Long.class);
         List<SaisonEintrag> saisons = jdbc.query(
                 "SELECT id,name,version FROM saison ORDER BY name DESC",
                 (rs, z) -> new SaisonEintrag(uuid(rs, "id"), rs.getInt("name"),
@@ -66,13 +69,22 @@ public class SynchronisationsService {
         List<Ergebnis> ergebnisse = jdbc.query("""
                 SELECT id,schuetze_id,wettkampftag_id,wert FROM ergebnis ORDER BY id
                 """, this::ergebnis);
-        return new SynchronisationsSnapshot(saisons, ligen, altersklassen, mannschaften,
+        return new SynchronisationsSnapshot(revision == null ? 0 : revision,
+                saisons, ligen, altersklassen, mannschaften,
                 schuetzen, wettkampftage, begegnungen, saisonSchuetzen, ergebnisse);
     }
 
     /** Ersetzt alle Fachdaten in einer Transaktion; Konto und Sitzungen bleiben erhalten. */
     @Transactional
-    public void speichern(SynchronisationsSnapshot snapshot) {
+    public long speichern(SynchronisationsSnapshot snapshot) {
+        int aktualisiert = jdbc.update("""
+                UPDATE fachdaten_revision SET version=version+1
+                WHERE id=TRUE AND version=?
+                """, snapshot.revision());
+        if (aktualisiert != 1) {
+            throw new VersionskonfliktException(
+                    "Der Serverstand wurde seit dem Laden durch eine andere Sitzung geändert.");
+        }
         jdbc.execute("TRUNCATE TABLE ergebnis,saison_schuetze,begegnung,wettkampftag,"
                 + "schuetze,mannschaft,altersklasse,liga,saison");
         snapshot.saisons().forEach(w -> jdbc.update(
@@ -103,6 +115,7 @@ public class SynchronisationsService {
         snapshot.ergebnisse().forEach(w -> jdbc.update("""
                 INSERT INTO ergebnis(id,schuetze_id,wettkampftag_id,wert) VALUES(?,?,?,?)
                 """, w.id(), w.schuetzeId(), w.wettkampftagId(), w.wert()));
+        return snapshot.revision() + 1;
     }
 
     private Wettkampftag wettkampftag(ResultSet rs, int zeile) throws SQLException {

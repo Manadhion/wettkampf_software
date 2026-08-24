@@ -18,6 +18,7 @@ import io.github.manadhion.wettkampf.server.fachdaten.FachdatenModelle.Wettkampf
 
 /** Vollstaendiger Fachdatenstand fuer den fluechtigen Offline-Notbetrieb. */
 public record SynchronisationsSnapshot(
+        @Min(0) long revision,
         @NotNull List<@Valid SaisonEintrag> saisons,
         @NotNull List<@Valid Liga> ligen,
         @NotNull List<@Valid Altersklasse> altersklassen,

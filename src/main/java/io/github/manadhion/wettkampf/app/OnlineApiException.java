@@ -32,4 +32,8 @@ public class OnlineApiException extends RuntimeException {
     public boolean istAnmeldungAbgelaufen() {
         return httpStatus == 401;
     }
+
+    public boolean istVersionskonflikt() {
+        return httpStatus == 409;
+    }
 }

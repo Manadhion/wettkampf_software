@@ -12,4 +12,5 @@ public interface AuthRepository {
     void sitzungAnlegen(UUID id, UUID kontoId, String tokenHash, Instant laeuftAb);
     boolean istSitzungGueltig(String tokenHash, Instant jetzt);
     int sitzungWiderrufen(String tokenHash, Instant jetzt);
+    int alteSitzungenLoeschen(Instant grenze);
 }

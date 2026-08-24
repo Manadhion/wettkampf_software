@@ -83,6 +83,8 @@ public class Main extends Application {
     private Button beamerButton = new Button("Beamer-Anzeige starten");
     private Button pdfButton = new Button("Saison-PDF …");
     private Label offlineHinweis;
+    private Button konfliktLoesenButton = new Button("Versionskonflikt lösen …");
+    private boolean vorherigerVersionskonflikt;
 
     /**
      * Einstiegspunkt, erzeugt eine Instanz und startet die Methode start aus der App-Klasse.
@@ -152,6 +154,11 @@ public class Main extends Application {
         offlineHinweis.setVisible(false);
         offlineHinweis.setManaged(false);
         top.getChildren().add(offlineHinweis);
+
+        konfliktLoesenButton.setVisible(false);
+        konfliktLoesenButton.setManaged(false);
+        konfliktLoesenButton.setOnAction(event -> versionskonfliktLoesen());
+        top.getChildren().add(konfliktLoesenButton);
 
         if (datenService instanceof OnlineWettkampfDatenService online) {
             online.statusListenerHinzufuegen(status ->
@@ -651,6 +658,16 @@ public class Main extends Application {
         boolean warnung = !status.verbunden() || status.synchronisationsfehler() != null;
         offlineHinweis.setVisible(warnung);
         offlineHinweis.setManaged(warnung);
+        konfliktLoesenButton.setVisible(status.versionskonflikt());
+        konfliktLoesenButton.setManaged(status.versionskonflikt());
+        konfliktLoesenButton.setDisable(status.konfliktloesungLaeuft());
+        konfliktLoesenButton.setText(status.konfliktloesungLaeuft()
+                ? "Versionskonflikt wird gelöst …" : "Versionskonflikt lösen …");
+
+        if (vorherigerVersionskonflikt && !status.versionskonflikt() && saisonCombo != null) {
+            saisonComboAktualisieren();
+        }
+        vorherigerVersionskonflikt = status.versionskonflikt();
         if (!warnung) return;
 
         long anzahl = status.ausstehendeAenderungen();
@@ -662,6 +679,38 @@ public class Main extends Application {
                     + aenderungsText(anzahl)
                     + " Die Daten gehen verloren, wenn das Programm vor der Synchronisation beendet wird.");
         }
+    }
+
+    private void versionskonfliktLoesen() {
+        if (!(datenService instanceof OnlineWettkampfDatenService online)) return;
+
+        ButtonType serverstand = new ButtonType("Serverstand verwenden");
+        ButtonType lokalerStand = new ButtonType("Lokalen Stand verwenden");
+        Alert auswahl = new Alert(AlertType.WARNING, "", serverstand, lokalerStand,
+                ButtonType.CANCEL);
+        auswahl.setTitle("Versionskonflikt lösen");
+        auswahl.setHeaderText("Server und dieses Programm enthalten unterschiedliche Änderungen.");
+        auswahl.setContentText("Eine automatische Zusammenführung ist nicht sicher möglich. "
+                + "Wählen Sie bewusst, welcher vollständige Stand erhalten bleiben soll.");
+        Optional<ButtonType> wahl = auswahl.showAndWait();
+        if (wahl.isEmpty() || wahl.get() == ButtonType.CANCEL) return;
+
+        boolean serverGewählt = wahl.get() == serverstand;
+        ButtonType endgueltig = new ButtonType("Ja, endgültig fortfahren");
+        Alert bestaetigung = new Alert(AlertType.CONFIRMATION, "", endgueltig,
+                ButtonType.CANCEL);
+        bestaetigung.setTitle("Auswahl bestätigen");
+        bestaetigung.setHeaderText(serverGewählt
+                ? "Die nicht synchronisierten lokalen Änderungen werden verworfen."
+                : "Der aktuelle Serverstand wird durch den lokalen Stand ersetzt.");
+        bestaetigung.setContentText(serverGewählt
+                ? "Der neueste Serverstand wird geladen. Dieser Schritt kann nicht rückgängig gemacht werden."
+                : "Abweichende Änderungen auf dem Server gehen verloren. Dieser Schritt kann nicht rückgängig gemacht werden.");
+        Optional<ButtonType> bestaetigt = bestaetigung.showAndWait();
+        if (bestaetigt.filter(endgueltig::equals).isEmpty()) return;
+
+        if (serverGewählt) online.serverstandVerwenden();
+        else online.lokalenStandVerwenden();
     }
 
     private String aenderungsText(long anzahl) {

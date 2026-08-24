@@ -188,6 +188,21 @@ einzigen Datenbanktransaktion; Konto und Sitzungen werden nicht verändert. Der
 Endpunkt setzt fachlich voraus, dass während eines Wettkampfs nur ein Verein
 schreibend arbeitet. Die lokale Sportleiter-Datenbank ist daran nicht beteiligt.
 
+Jeder Snapshot enthält zusätzlich die globale Zahl `revision`. `PUT` wird nur
+ausgeführt, wenn diese Revision noch dem Serverstand entspricht. Bei Erfolg
+liefert der Server die erhöhte Revision zurück:
+
+```json
+{
+  "revision": 42
+}
+```
+
+Hat eine andere Sitzung den Datenbestand seit dem Laden verändert, antwortet
+der Server mit `409 VERSION_KONFLIKT`. Dabei werden keine Fachdaten gelöscht
+oder überschrieben. Der Client behält seine noch nicht synchronisierten Daten
+im Arbeitsspeicher und weist auf den Konflikt hin.
+
 ## 8. Datenregeln
 
 - Wettkampfdaten sind eindeutig.

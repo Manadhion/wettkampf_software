@@ -1,6 +1,8 @@
 package io.github.manadhion.wettkampf.app;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.Authenticator;
@@ -58,23 +60,46 @@ class OnlineApiClientTest {
         http.antworten.add(new FakeAntwort(200,
                 "{\"token\":\"sitzung-token\",\"laeuftAb\":\"2026-08-22T03:00:00Z\"}"));
         http.antworten.add(new FakeAntwort(200, """
-                {"saisons":[{"id":"s1","name":2627,"version":2}],
+                {"revision":7,"saisons":[{"id":"s1","name":2627,"version":2}],
                  "ligen":[],"altersklassen":[],"mannschaften":[],"schuetzen":[],
                  "wettkampftage":[],"begegnungen":[],"saisonSchuetzen":[],"ergebnisse":[]}
                 """));
-        http.antworten.add(new FakeAntwort(204, ""));
+        http.antworten.add(new FakeAntwort(200, "{\"revision\":8}"));
         OnlineApiClient client = new OnlineApiClient(URI.create("http://127.0.0.1:8002"), http);
 
         client.anmelden("online", "test-passwort".toCharArray());
         OnlineApi.OnlineSnapshot snapshot = client.snapshotLaden();
-        client.snapshotSpeichern(snapshot);
+        long neueRevision = client.snapshotSpeichern(snapshot);
 
         assertEquals(1, snapshot.saisons().size());
+        assertEquals(7, snapshot.revision());
+        assertEquals(8, neueRevision);
         assertEquals("/api/v1/snapshot", http.anfragen.get(1).uri().getPath());
         assertEquals("GET", http.anfragen.get(1).method());
         assertEquals("PUT", http.anfragen.get(2).method());
         assertEquals("Bearer sitzung-token",
                 http.anfragen.get(2).headers().firstValue("Authorization").orElseThrow());
+        org.junit.jupiter.api.Assertions.assertTrue(
+                http.anfragen.get(2).bodyPublisher().orElseThrow().contentLength() > 0);
+    }
+
+    @Test
+    void erkenntUndErklaertEinenSnapshotVersionskonflikt() {
+        FakeHttpClient http = new FakeHttpClient();
+        http.antworten.add(new FakeAntwort(200,
+                "{\"token\":\"sitzung-token\",\"laeuftAb\":\"2026-08-24T12:00:00Z\"}"));
+        http.antworten.add(new FakeAntwort(409,
+                "{\"code\":\"VERSION_KONFLIKT\",\"nachricht\":\"Serverstand ist neuer.\"}"));
+        OnlineApiClient client = new OnlineApiClient(URI.create("http://127.0.0.1:8002"), http);
+        client.anmelden("online", "test-passwort".toCharArray());
+        OnlineApi.OnlineSnapshot leer = new OnlineApi.OnlineSnapshot(2, List.of(), List.of(),
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of());
+
+        OnlineApiException fehler = assertThrows(OnlineApiException.class,
+                () -> client.snapshotSpeichern(leer));
+
+        assertTrue(fehler.istVersionskonflikt());
+        assertEquals("Serverstand ist neuer.", fehler.getMessage());
     }
 
     private static final class FakeHttpClient extends HttpClient {
