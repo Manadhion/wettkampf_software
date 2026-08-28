@@ -239,6 +239,12 @@ Ergebnis: `dist\Blasrohr-Wettkampf-Manager-<version>.exe` (Installer mit
 Startmenü- und Desktop-Verknüpfung, Installation pro Benutzer ohne
 Administratorrechte).
 
+Das Paketierungsskript führt vor `jpackage` einen `java --dry-run` mit der
+reduzierten `jlink`-Laufzeit aus. Dadurch bricht der Build ab, wenn ein in
+`module-info.java` benötigtes JDK-Modul (beispielsweise `java.net.http`) nicht
+in `--add-modules` aufgenommen wurde; andernfalls würde die Windows-GUI-EXE
+beim Start ohne sichtbare Fehlermeldung beendet.
+
 Statt eines Installers einen **portablen Ordner** bauen (kein WiX nötig, einfach
 entpacken und die `.exe` starten):
 

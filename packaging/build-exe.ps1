@@ -121,15 +121,26 @@ Copy-Item $appJar.FullName $lib
 
 # --- 3) Schlanke Java-Laufzeit erzeugen (jlink) -----------------------------
 # JavaFX kommt als Module zur Laufzeit dazu (siehe target\lib); die Laufzeit
-# enthaelt nur die benoetigten JDK-Module.
+# enthaelt nur die benoetigten JDK-Module. Die Liste muss alle JDK-Module aus
+# module-info.java enthalten. Insbesondere darf java.net.http nicht fehlen,
+# sonst beendet sich der GUI-Launcher ohne sichtbare Fehlermeldung.
 Write-Host "[3/4] Java-Laufzeit mit jlink erzeugen ..." -ForegroundColor Green
 $runtime = Join-Path $Root "target\runtime"
 if (Test-Path $runtime) { Remove-Item $runtime -Recurse -Force }
 & $jlink `
-    --add-modules java.base,java.desktop,java.sql,java.sql.rowset,java.prefs,java.xml,java.scripting,java.logging,java.naming,jdk.unsupported `
+    --add-modules java.base,java.desktop,java.sql,java.sql.rowset,java.prefs,java.xml,java.scripting,java.logging,java.naming,java.net.http,jdk.unsupported `
     --no-header-files --no-man-pages --strip-debug --compress=zip-6 `
     --output $runtime
 if ($LASTEXITCODE -ne 0) { throw "jlink fehlgeschlagen." }
+
+# Vor dem Verpacken pruefen, ob die Anwendung mit der reduzierten Laufzeit
+# wenigstens vollstaendig geladen werden kann. --dry-run ruft Main nicht auf,
+# deckt aber fehlende Module auf und verhindert einen nicht startbaren Installer.
+$runtimeJava = Join-Path $runtime "bin\java.exe"
+& $runtimeJava --module-path $lib --dry-run --module $MainModule
+if ($LASTEXITCODE -ne 0) {
+    throw "Laufzeitpruefung fehlgeschlagen. jlink-Module und module-info.java abgleichen."
+}
 
 # --- 4) Verpacken (jpackage) ------------------------------------------------
 Write-Host "[4/4] Mit jpackage verpacken ($Type) ..." -ForegroundColor Green
